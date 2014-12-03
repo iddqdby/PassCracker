@@ -127,7 +127,7 @@ public class SimplePassSequence implements PassSequence {
      * @throws IllegalArgumentException if any of the arguments is illegal
      */
     public SimplePassSequence( int characterSets, char[] additionalCharacters,
-            int minLength, int maxLength, char[] startFrom ) {
+            int minLength, int maxLength, String startFrom ) {
         
         if( maxLength < minLength || minLength < 0 ) {
             throw new IllegalArgumentException( "'maxLength' and/or 'minLength' are illegal" );
@@ -170,7 +170,7 @@ public class SimplePassSequence implements PassSequence {
                 initialValue[ i ] = -1;
             }
         } else {
-            initialValue = toIntArray( startFrom );
+            initialValue = toIntArray( startFrom.toCharArray() );
         }
         
         this.minBaseIndex = calculateBaseIndex( initialValue );

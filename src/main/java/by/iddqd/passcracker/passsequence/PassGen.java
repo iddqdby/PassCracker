@@ -39,7 +39,7 @@ public class PassGen {
             char[] additionalCharacters = args[1].toCharArray();
             int minLength = Integer.parseInt( args[2] );
             int maxLength = Integer.parseInt( args[3] );
-            char[] startFrom = args.length == 5 ? args[4].toCharArray() : null;
+            String startFrom = args.length == 5 ? args[4] : null;
             
             SimplePassSequence ps =
                     new SimplePassSequence( characterSets, additionalCharacters, minLength, maxLength, startFrom );
