@@ -31,11 +31,11 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
 /**
- * Sequence of passwords to try out.
+ * Simple sequence of passwords to try out.
  * 
  * @author Sergey Protasevich
  */
-public class SimplePassSequence implements Iterable<String> {
+public class SimplePassSequence implements PassSequence {
     
     public static final int KEY_DIGITS =             0b000001;
     public static final int KEY_LATIN =              0b000010;
@@ -222,6 +222,7 @@ public class SimplePassSequence implements Iterable<String> {
      * @return index of the value.
      * @throws IllegalArgumentException if the value is not from this sequence.
      */
+    @Override
     public BigInteger indexOf( String value ) {
         return calculateBaseIndex( toIntArray( value.toCharArray() ) ).subtract( minBaseIndex );
     }
@@ -231,6 +232,7 @@ public class SimplePassSequence implements Iterable<String> {
      * 
      * @return the size of this sequence.
      */
+    @Override
     public BigInteger size() {
         return size;
     }
