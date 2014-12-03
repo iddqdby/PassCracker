@@ -41,8 +41,8 @@ public class PassGen {
             int maxLength = Integer.parseInt( args[3] );
             char[] startFrom = args.length == 5 ? args[4].toCharArray() : null;
             
-            PassSequence ps =
-                    new PassSequence( characterSets, additionalCharacters, minLength, maxLength, startFrom );
+            SimplePassSequence ps =
+                    new SimplePassSequence( characterSets, additionalCharacters, minLength, maxLength, startFrom );
             
             BigInteger maxDisplayedValue = new BigInteger( Long.toString( Long.MAX_VALUE ) ).pow( 8 );
             String maxDisplayedValueStr = maxDisplayedValue.toString();

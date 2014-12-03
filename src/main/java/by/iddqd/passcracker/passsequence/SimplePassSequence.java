@@ -35,7 +35,7 @@ import static java.math.BigInteger.ZERO;
  * 
  * @author Sergey Protasevich
  */
-public class PassSequence implements Iterable<String> {
+public class SimplePassSequence implements Iterable<String> {
     
     public static final int KEY_DIGITS =             0b000001;
     public static final int KEY_LATIN =              0b000010;
@@ -105,7 +105,7 @@ public class PassSequence implements Iterable<String> {
      * @param maxLength maximum length of generated passwords
      * @throws IllegalArgumentException if any of the arguments is illegal
      */
-    public PassSequence( int characterSets, char[] additionalCharacters,
+    public SimplePassSequence( int characterSets, char[] additionalCharacters,
             int minLength, int maxLength ) {
         this( characterSets, additionalCharacters, minLength, maxLength, null );
     }
@@ -126,7 +126,7 @@ public class PassSequence implements Iterable<String> {
      * @param startFrom password to start from
      * @throws IllegalArgumentException if any of the arguments is illegal
      */
-    public PassSequence( int characterSets, char[] additionalCharacters,
+    public SimplePassSequence( int characterSets, char[] additionalCharacters,
             int minLength, int maxLength, char[] startFrom ) {
         
         if( maxLength < minLength || minLength < 0 ) {
