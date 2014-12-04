@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.passsequence.alphabet;
+package by.iddqd.passcracker.sequence.alphabet;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

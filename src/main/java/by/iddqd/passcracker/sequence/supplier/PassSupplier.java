@@ -16,9 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.passsequence.supplier;
+package by.iddqd.passcracker.sequence.supplier;
 
-import by.iddqd.passcracker.passsequence.PassSequence;
+import by.iddqd.passcracker.sequence.PassSequence;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;

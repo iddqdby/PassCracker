@@ -16,11 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.passsequence;
+package by.iddqd.passcracker.sequence;
 
-import by.iddqd.passcracker.passsequence.alphabet.Alphabet;
-import by.iddqd.passcracker.passsequence.alphabet.CharacterAlphabet;
-import by.iddqd.passcracker.passsequence.alphabet.TokenAlphabet;
+import by.iddqd.passcracker.sequence.alphabet.Alphabet;
+import by.iddqd.passcracker.sequence.alphabet.CharacterAlphabet;
+import by.iddqd.passcracker.sequence.alphabet.TokenAlphabet;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
