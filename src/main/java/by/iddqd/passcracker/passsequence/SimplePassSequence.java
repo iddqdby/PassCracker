@@ -53,16 +53,15 @@ public class SimplePassSequence extends AbstractPassSequence {
         this.alphabet = alphabet;
         this.alphabetSize = alphabet.size();
         
+        initialValue = new int[ maxLength ];
+        Arrays.fill( initialValue, -1 );
         if( startFrom == null ) {
-            initialValue = new int[ maxLength ];
             for( int i = 0; i < minLength; i++ ) {
                 initialValue[ i ] = 0;
             }
-            for( int i = minLength; i < maxLength; i++ ) {
-                initialValue[ i ] = -1;
-            }
         } else {
-            initialValue = alphabet.toElements( startFrom );
+            int[] startFromElements = alphabet.toElements( startFrom );
+            System.arraycopy( startFromElements, 0, initialValue, 0, startFromElements.length );
         }
         
         this.minBaseIndex = calculateBaseIndex( initialValue );
