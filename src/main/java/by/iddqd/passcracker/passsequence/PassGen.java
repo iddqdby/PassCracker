@@ -18,7 +18,14 @@
 
 package by.iddqd.passcracker.passsequence;
 
+import by.iddqd.passcracker.passsequence.alphabet.Alphabet;
+import by.iddqd.passcracker.passsequence.alphabet.CharacterAlphabet;
+import by.iddqd.passcracker.passsequence.alphabet.TokenAlphabet;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.math.BigInteger.ONE;
 
@@ -35,14 +42,40 @@ public class PassGen {
     public static void main( String[] args ) {
         try {
             
-            int characterSets = Integer.parseInt( args[0] );
-            char[] additionalCharacters = args[1].toCharArray();
-            int minLength = Integer.parseInt( args[2] );
-            int maxLength = Integer.parseInt( args[3] );
-            String startFrom = args.length == 5 ? args[4] : null;
+            int minLength = Integer.parseInt( args[0] );
+            int maxLength = Integer.parseInt( args[1] );
             
-            SimplePassSequence ps =
-                    new SimplePassSequence( characterSets, additionalCharacters, minLength, maxLength, startFrom );
+            Matcher matcher = Pattern.compile( "^\\[(?<VALUE>.*)\\]$" ).matcher( args[2] );
+            String startFrom = matcher.matches() ? matcher.group( "VALUE" ) : null;
+            
+            String alphabetType = args[3];
+            
+            Alphabet alphabet;
+            
+            switch( alphabetType ) {
+                case "c":
+                    
+                    int characterSets = Integer.parseInt( args[4] );
+                    char[] additionalCharacters = args[5].toCharArray();
+                    
+                    alphabet = new CharacterAlphabet( characterSets, additionalCharacters );
+                    
+                    break;
+                case "t":
+                    
+                    List<String> tokens = new ArrayList<>();
+                    for( int i = 4; i < args.length; i++ ) {
+                        tokens.add( args[i] );
+                    }
+                    
+                    alphabet = new TokenAlphabet( tokens );
+                    
+                    break;
+                default:
+                    throw new IllegalArgumentException();
+            }
+            
+            SimplePassSequence ps = new SimplePassSequence( alphabet, minLength, maxLength, startFrom );
             
             BigInteger maxDisplayedValue = new BigInteger( Long.toString( Long.MAX_VALUE ) ).pow( 8 );
             String maxDisplayedValueStr = maxDisplayedValue.toString();
@@ -65,19 +98,27 @@ public class PassGen {
         } catch( Exception ex ) {
             System.err.println( "An exception occurred:\n\n" + ex + "\n" );
             System.err.println( "Usage:\n"
-                    + "java -jar PassGen.jar [characterSets] [additionalCharacters]"
-                    + " [minLength] [maxLength] [startFrom]\n"
-                    + "\tcharacterSets (integer) -- sets of characters to use; a sum of some of the next values:\n"
-                    + "\t\t0b000001 (1) -- digits,\n"
-                    + "\t\t0b000010 (2) -- latin characters,\n"
-                    + "\t\t0b000100 (4) -- cyrillic characters,\n"
-                    + "\t\t0b001000 (8) -- special characters,\n"
-                    + "\t\t0b010000 (16) -- space,\n"
-                    + "\t\t0b100000 (32) -- tab\n"
-                    + "\tadditionalCharacters (string) -- additional characters to use\n"
+                    + "java -jar PassGen.jar [minLength] [maxLength] [startFrom]"
+                    + " [alphabetType] [options...]\n"
                     + "\tminLength (integer) -- minimum length of generated passwords\n"
                     + "\tmaxLength (integer) -- maximum length of generated passwords\n"
-                    + "\tstartFrom (string) [optional argument] -- password to start from\n" );
+                    + "\tstartFrom (string) -- value to start from, in square brackets"
+                    + " (for ex. \"[mypass]\"), or \"-\", if there is no starting value\n"
+                    + "\talphabetType -- type of alphabet: \"c\" for CharacterAlphabet"
+                    + " or \"t\" for TokenAlphabet\n"
+                    + "\toptions -- options for given alphabet:\n"
+                    + "\t\tCharacterAlphabet:\n"
+                    + "\t\t\tcharacterSets (integer) -- sets of characters to use;"
+                    + " a sum of some of the next values:\n"
+                    + "\t\t\t\t0b000001 (1) -- digits,\n"
+                    + "\t\t\t\t0b000010 (2) -- latin characters,\n"
+                    + "\t\t\t\t0b000100 (4) -- cyrillic characters,\n"
+                    + "\t\t\t\t0b001000 (8) -- special characters,\n"
+                    + "\t\t\t\t0b010000 (16) -- space,\n"
+                    + "\t\t\t\t0b100000 (32) -- tab\n"
+                    + "\t\t\tadditionalCharacters (string) -- additional characters to use\n"
+                    + "\t\tTokenAlphabet:\n"
+                    + "\t\t\ttokens -- space-separated list of tokens to use as alphabet elements" );
             System.exit( 1 );
         }
     }
