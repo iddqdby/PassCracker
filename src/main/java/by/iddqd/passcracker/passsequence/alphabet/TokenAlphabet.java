@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 
 
@@ -45,18 +46,15 @@ public class TokenAlphabet extends ElementAlphabet {
         }
         
         // TreeSet sorts the collection of chunks and removes duplicates
-        List<char[]> elements = new ArrayList<>();
-        new TreeSet<>( tokens ).stream()
-                .map( token -> token.toCharArray() )
-                .forEachOrdered( array -> elements.add( array ) );
+        Set<String> elements = new TreeSet<>( tokens );
         
         alphabet = new char[ elements.size() ][];
         lastIndex = alphabet.length - 1;
         size = new BigInteger( String.valueOf( alphabet.length ) );
         
         int p = 0;
-        for( char[] element : elements ) {
-            alphabet[ p++ ] = element;
+        for( String element : elements ) {
+            alphabet[ p++ ] = element.toCharArray();
         }
     }
 
