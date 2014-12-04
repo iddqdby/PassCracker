@@ -29,15 +29,6 @@ import java.util.Iterator;
 public interface PassSequence extends Iterable<String> {
 
     /**
-     * Returns an index of the given value.
-     *
-     * @param value a valid value from this sequence
-     * @return index of the value.
-     * @throws IllegalArgumentException if the value is not from this sequence.
-     */
-    BigInteger indexOf( String value );
-
-    /**
      * Returns an iterator over passwords.
      *
      * @return an Iterator.
