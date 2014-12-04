@@ -34,8 +34,10 @@ import static java.math.BigInteger.ONE;
  * 
  * @author Sergey Protasevich
  */
-public class PassGen {
+public final class PassGen {
 
+    private PassGen() {}
+    
     /**
      * @param args the command line arguments
      */
