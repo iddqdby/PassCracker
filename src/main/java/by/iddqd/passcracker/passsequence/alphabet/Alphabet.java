@@ -55,7 +55,16 @@ public interface Alphabet {
      * 
      * @return the size of this alphabet.
      */
-    BigInteger size();
+    default int size() {
+        return sizeBI().intValue();
+    }
+    
+    /**
+     * Get the size of this alphabet as BigInteger.
+     * 
+     * @return the size of this alphabet as BigInteger.
+     */
+    BigInteger sizeBI();
     
     /**
      * Convert given value to an array of indices of elements of this alphabet.

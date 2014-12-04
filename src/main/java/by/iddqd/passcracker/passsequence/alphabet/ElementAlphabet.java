@@ -47,7 +47,7 @@ public abstract class ElementAlphabet implements Alphabet {
     }
 
     @Override
-    public BigInteger size() {
+    public BigInteger sizeBI() {
         return size;
     }
     
