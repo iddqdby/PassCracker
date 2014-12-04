@@ -119,5 +119,28 @@ public class CharacterAlphabet extends ElementAlphabet {
             alphabet[ p++ ][0] = c;
         }
     }
+
+    @Override
+    public int[] toElements( String value ) throws IllegalArgumentException {
+        
+        char[] charArray = value.toCharArray();
+        
+        int[] intArray = new int[ charArray.length ];
+        for( int i = 0; i < charArray.length; i++ ) {
+            intArray[ i ] = -1;
+        }
+
+        init: for( int i = 0; i < charArray.length; i++ ) {
+            for( int j = 0; j < alphabet.length; j++ ) {
+                if( charArray[ i ] == alphabet[ j ][0] ) {
+                    intArray[ i ] = j;
+                    continue init;
+                }
+            }
+            throw new IllegalArgumentException( "Value has illegal character(s)" );
+        }
+        
+        return intArray;
+    }
     
 }

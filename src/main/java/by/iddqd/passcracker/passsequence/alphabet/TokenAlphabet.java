@@ -59,5 +59,30 @@ public class TokenAlphabet extends ElementAlphabet {
             alphabet[ p++ ] = element;
         }
     }
+
+    @Override
+    public int[] toElements( String value ) throws IllegalArgumentException {
+        
+        List<Integer> indices = new ArrayList<>();
+        
+        init: while( value.length() > 0 ) {
+            for( int i = 0; i < alphabet.length; i++ ) {
+                String token = new String( alphabet[i] );
+                if( value.startsWith( token ) ) {
+                    value = value.substring( token.length() );
+                    indices.add( i );
+                    continue init;
+                }
+            }
+            throw new IllegalArgumentException( "Value is illegal" );
+        };
+        
+        int[] array = new int[ indices.size() ];
+        int i = 0;
+        for( int index : indices ) {
+            array[ i++ ] = index;
+        }
+        return array;
+    }
     
 }

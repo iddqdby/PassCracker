@@ -57,4 +57,13 @@ public interface Alphabet {
      */
     BigInteger size();
     
+    /**
+     * Convert given value to an array of indices of elements of this alphabet.
+     * 
+     * @param value the value
+     * @return array of indices of elements of this alphabet.
+     * @throws IllegalArgumentException if the value cannot be converted.
+     */
+    int[] toElements( String value ) throws IllegalArgumentException;
+    
 }
