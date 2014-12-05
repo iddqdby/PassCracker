@@ -22,11 +22,13 @@ import by.iddqd.passcracker.sequence.SimplePassSequence;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import by.iddqd.passcracker.sequence.alphabet.CharacterAlphabet;
 import by.iddqd.passcracker.sequence.alphabet.TokenAlphabet;
+import by.iddqd.passcracker.sequence.supplier.PassConsumer;
 import by.iddqd.passcracker.sequence.supplier.PassSupplier;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,11 +42,20 @@ import static java.math.BigInteger.ONE;
  */
 public final class PassGen {
 
+    private static final BigInteger MAX_DISPLAYED_VALUE;
+    private static final String MAX_DISPLAYED_VALUE_STRING;
+    
+    static {
+        MAX_DISPLAYED_VALUE = new BigInteger( Long.toString( Long.MAX_VALUE ) ).pow( 8 );
+        MAX_DISPLAYED_VALUE_STRING = MAX_DISPLAYED_VALUE.toString();
+    }
+    
     private PassGen() {}
     
     /**
      * @param args the command line arguments
      */
+    @SuppressWarnings( "InfiniteRecursion" )
     public static void main( String[] args ) {
         try {
             
@@ -62,7 +73,9 @@ public final class PassGen {
                 case "c":
                     
                     int characterSets = Integer.parseInt( args[4] );
-                    char[] additionalCharacters = args[5].toCharArray();
+                    char[] additionalCharacters = args.length == 6
+                            ? args[5].toCharArray()
+                            : new char[] {};
                     
                     alphabet = new CharacterAlphabet( characterSets, additionalCharacters );
                     
@@ -83,36 +96,30 @@ public final class PassGen {
             
             SimplePassSequence passSequence =
                     new SimplePassSequence( alphabet, minLength, maxLength, startFrom );
-            PassSupplier passSupplier =
-                    PassSupplier.create( passSequence );
-            
-            BigInteger maxDisplayedValue = new BigInteger( Long.toString( Long.MAX_VALUE ) ).pow( 8 );
-            String maxDisplayedValueStr = maxDisplayedValue.toString();
             
             BigInteger maxIndex = passSequence.size().subtract( ONE );
-            String maxIndexStr = maxIndex.compareTo( maxDisplayedValue ) == 1
-                    ? ">" + maxDisplayedValueStr
+            String maxIndexStr = maxIndex.compareTo( MAX_DISPLAYED_VALUE ) == 1
+                    ? ">" + MAX_DISPLAYED_VALUE_STRING
                     : maxIndex.toString();
             
-            boolean printIndex = true;
-            while( passSupplier.isRunning() || !passSupplier.getQueue().isEmpty() ) {
+            new Thread( new PassConsumer( PassSupplier.create( passSequence ), password -> {
                 
-                String password = passSupplier.getQueue().poll( 60, TimeUnit.SECONDS );
-                if( password == null ) {
-                    throw new RuntimeException();
-                }
+                BigInteger index = passSequence.indexOf( password );
+                System.out.printf( "%s/%s:\t%s\n",
+                        index.compareTo( MAX_DISPLAYED_VALUE ) > 0
+                                ? MAX_DISPLAYED_VALUE_STRING
+                                : index.toString(),
+                        maxIndexStr,
+                        password );
                 
-                if( printIndex ) {
-                    
-                    BigInteger index = passSequence.indexOf( password );
-                    System.out.printf( "%s/%s:\t%s\n", index.toString(), maxIndexStr, password );
-                    
-                    printIndex = index.compareTo( maxDisplayedValue ) < 1;
-                    
-                } else {
-                    System.out.printf( "%s:\t%s\n", maxIndexStr, password );
-                }
-            }
+                return index.compareTo( maxIndex ) == 0;
+                
+            }, password -> {
+                
+                System.out.printf( "Last password is: %s\nTerminated.\n", password );
+                
+            } ) ).start();
+            
         } catch( Exception ex ) {
             System.err.println( "An exception occurred:\n\n" + ex + "\n" );
             System.err.println( "Usage:\n"
