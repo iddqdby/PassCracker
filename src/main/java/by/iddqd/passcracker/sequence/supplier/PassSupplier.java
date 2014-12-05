@@ -67,15 +67,23 @@ public class PassSupplier {
     private PassSupplier( PassSequence passSequence, int queueCapacity ) {
         this.passSequence = passSequence;
         queue = new ArrayBlockingQueue<>( queueCapacity );
-        thread = new Thread( () -> {
-            for( String password : this.passSequence ) {
-                try {
-                    queue.put( password );
-                } catch( InterruptedException ex ) {
-                    throw new RuntimeException( ex );
+        thread = new Thread() {
+            @Override
+            public void run() {
+                for( String password : PassSupplier.this.passSequence ) {
+                    
+                    if( isInterrupted() ) {
+                        return;
+                    }
+                    
+                    try {
+                        queue.put( password );
+                    } catch( InterruptedException ex ) {
+                        return;
+                    }
                 }
             }
-        } );
+        };
         thread.setDaemon( true );
     }
     
@@ -88,24 +96,12 @@ public class PassSupplier {
         super.finalize();
         thread.interrupt();
     }
-    
-    
-    /**
-     * Get the sequence of passwords.
-     * 
-     * @return the sequence of passwords.
-     */
-    public PassSequence getPassSequence() {
-        return passSequence;
-    }
 
     /**
-     * Get the queue.
-     * 
-     * @return the queue.
+     * Shutdown the supplier.
      */
-    public BlockingQueue<String> getQueue() {
-        return queue;
+    void shutdown() {
+        thread.interrupt();
     }
     
     /**
@@ -113,7 +109,16 @@ public class PassSupplier {
      * 
      * @return true if this supplier is running; false otherwise.
      */
-    public boolean isRunning() {
+    boolean isRunning() {
         return thread.isAlive();
+    }
+
+    /**
+     * Get the queue.
+     * 
+     * @return the queue.
+     */
+    BlockingQueue<String> getQueue() {
+        return queue;
     }
 }
