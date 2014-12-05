@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     
-    <groupId>by.iddqd.passcracker.passsequence</groupId>
+    <groupId>by.iddqd.passcracker.sequence</groupId>
     <artifactId>PassSequence</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
@@ -11,7 +11,7 @@
 
     <properties>
         
-        <mainClass>by.iddqd.passcracker.passsequence.PassGen</mainClass>
+        <mainClass>by.iddqd.passcracker.sequence.PassGen</mainClass>
         
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -28,7 +28,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>by.iddqd.passcracker.passsequence.PassGen</mainClass>
+                            <mainClass>by.iddqd.passcracker.sequence.PassGen</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

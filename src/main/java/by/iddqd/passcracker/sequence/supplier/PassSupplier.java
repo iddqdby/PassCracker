@@ -19,7 +19,6 @@
 package by.iddqd.passcracker.sequence.supplier;
 
 import by.iddqd.passcracker.sequence.PassSequence;
-import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -105,7 +104,16 @@ public class PassSupplier {
      * 
      * @return the queue.
      */
-    public Queue<String> getQueue() {
+    public BlockingQueue<String> getQueue() {
         return queue;
+    }
+    
+    /**
+     * Tests if this supplier is running.
+     * 
+     * @return true if this supplier is running; false otherwise.
+     */
+    public boolean isRunning() {
+        return thread.isAlive();
     }
 }

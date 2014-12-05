@@ -16,14 +16,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.sequence;
+package by.iddqd.passcracker.cli;
 
+import by.iddqd.passcracker.sequence.SimplePassSequence;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import by.iddqd.passcracker.sequence.alphabet.CharacterAlphabet;
 import by.iddqd.passcracker.sequence.alphabet.TokenAlphabet;
+import by.iddqd.passcracker.sequence.supplier.PassSupplier;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,22 +81,34 @@ public final class PassGen {
                     throw new IllegalArgumentException();
             }
             
-            SimplePassSequence ps = new SimplePassSequence( alphabet, minLength, maxLength, startFrom );
+            SimplePassSequence passSequence =
+                    new SimplePassSequence( alphabet, minLength, maxLength, startFrom );
+            PassSupplier passSupplier =
+                    PassSupplier.create( passSequence );
             
             BigInteger maxDisplayedValue = new BigInteger( Long.toString( Long.MAX_VALUE ) ).pow( 8 );
             String maxDisplayedValueStr = maxDisplayedValue.toString();
             
-            BigInteger maxIndex = ps.size().subtract( ONE );
+            BigInteger maxIndex = passSequence.size().subtract( ONE );
             String maxIndexStr = maxIndex.compareTo( maxDisplayedValue ) == 1
                     ? ">" + maxDisplayedValueStr
                     : maxIndex.toString();
             
             boolean printIndex = true;
-            for( String password : ps ) {
+            while( passSupplier.isRunning() || !passSupplier.getQueue().isEmpty() ) {
+                
+                String password = passSupplier.getQueue().poll( 60, TimeUnit.SECONDS );
+                if( password == null ) {
+                    throw new RuntimeException();
+                }
+                
                 if( printIndex ) {
-                    BigInteger index = ps.indexOf( password );
+                    
+                    BigInteger index = passSequence.indexOf( password );
                     System.out.printf( "%s/%s:\t%s\n", index.toString(), maxIndexStr, password );
+                    
                     printIndex = index.compareTo( maxDisplayedValue ) < 1;
+                    
                 } else {
                     System.out.printf( "%s:\t%s\n", maxIndexStr, password );
                 }
