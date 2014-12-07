@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
- * Password supplier.
+ * Password consumer.
  * 
  * It uses provided PassSupplier to concurrently test passwords from the queue
  * and do something if one of them matches the criterion.
