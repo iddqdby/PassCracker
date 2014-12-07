@@ -112,7 +112,7 @@ public class CharacterAlphabet extends ElementAlphabet {
         
         alphabet = new char[ charSet.size() ][1];
         lastIndex = alphabet.length - 1;
-        size = new BigInteger( Integer.toString( alphabet.length ) );
+        size = BigInteger.valueOf( alphabet.length );
         
         int p = 0;
         for( char c : charSet ) {

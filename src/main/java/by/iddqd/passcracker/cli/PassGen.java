@@ -18,18 +18,17 @@
 
 package by.iddqd.passcracker.cli;
 
+import by.iddqd.passcracker.sequence.PassSequence;
+import by.iddqd.passcracker.sequence.PermutationsWithoutRepetitionsPassSequence;
 import by.iddqd.passcracker.sequence.SimplePassSequence;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import by.iddqd.passcracker.sequence.alphabet.CharacterAlphabet;
 import by.iddqd.passcracker.sequence.alphabet.TokenAlphabet;
-import by.iddqd.passcracker.sequence.supplier.PassConsumer;
-import by.iddqd.passcracker.sequence.supplier.PassSupplier;
+import by.iddqd.passcracker.sequence.workers.PassConsumer;
+import by.iddqd.passcracker.sequence.workers.PassSupplier;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,7 +45,7 @@ public final class PassGen {
     private static final String MAX_DISPLAYED_VALUE_STRING;
     
     static {
-        MAX_DISPLAYED_VALUE = new BigInteger( Long.toString( Long.MAX_VALUE ) ).pow( 8 );
+        MAX_DISPLAYED_VALUE = BigInteger.valueOf( Long.MAX_VALUE ).pow( 8 );
         MAX_DISPLAYED_VALUE_STRING = MAX_DISPLAYED_VALUE.toString();
     }
     
@@ -65,16 +64,17 @@ public final class PassGen {
             Matcher matcher = Pattern.compile( "^\\[(?<VALUE>.*)\\]$" ).matcher( args[2] );
             String startFrom = matcher.matches() ? matcher.group( "VALUE" ) : null;
             
-            String alphabetType = args[3];
+            String sequenceType = args[3];
+            String alphabetType = args[4];
             
             Alphabet alphabet;
             
             switch( alphabetType ) {
                 case "c":
                     
-                    int characterSets = Integer.parseInt( args[4] );
-                    char[] additionalCharacters = args.length == 6
-                            ? args[5].toCharArray()
+                    int characterSets = Integer.parseInt( args[5] );
+                    char[] additionalCharacters = args.length == 7
+                            ? args[6].toCharArray()
                             : new char[] {};
                     
                     alphabet = new CharacterAlphabet( characterSets, additionalCharacters );
@@ -83,7 +83,7 @@ public final class PassGen {
                 case "t":
                     
                     List<String> tokens = new ArrayList<>();
-                    for( int i = 4; i < args.length; i++ ) {
+                    for( int i = 5; i < args.length; i++ ) {
                         tokens.add( args[i] );
                     }
                     
@@ -94,8 +94,19 @@ public final class PassGen {
                     throw new IllegalArgumentException();
             }
             
-            SimplePassSequence passSequence =
-                    new SimplePassSequence( alphabet, minLength, maxLength, startFrom );
+            PassSequence passSequence;
+            switch( sequenceType ) {
+                case "s":
+                    passSequence = new SimplePassSequence( alphabet, minLength, maxLength, startFrom );
+                    break;
+                case "p":
+                    passSequence = new PermutationsWithoutRepetitionsPassSequence(
+                            alphabet, minLength, maxLength, startFrom );
+                    break;
+                default:
+                    throw new IllegalArgumentException();
+            }
+                    
             
             BigInteger maxIndex = passSequence.size().subtract( ONE );
             String maxIndexStr = maxIndex.compareTo( MAX_DISPLAYED_VALUE ) == 1
@@ -124,11 +135,13 @@ public final class PassGen {
             System.err.println( "An exception occurred:\n\n" + ex + "\n" );
             System.err.println( "Usage:\n"
                     + "java -jar PassGen.jar [minLength] [maxLength] [startFrom]"
-                    + " [alphabetType] [options...]\n"
+                    + " [sequenceType] [alphabetType] [options...]\n"
                     + "\tminLength (integer) -- minimum length of generated passwords\n"
                     + "\tmaxLength (integer) -- maximum length of generated passwords\n"
                     + "\tstartFrom (string) -- value to start from, in square brackets"
                     + " (for ex. \"[mypass]\"), or \"-\", if there is no starting value\n"
+                    + "\tsequenceType -- type of sequence: \"s\" for sequence with repetitions,"
+                    + " \"p\" for sequence without repetitions\n"
                     + "\talphabetType -- type of alphabet: \"c\" for CharacterAlphabet"
                     + " or \"t\" for TokenAlphabet\n"
                     + "\toptions -- options for given alphabet:\n"

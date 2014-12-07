@@ -43,4 +43,15 @@ public interface PassSequence extends Iterable<String> {
      */
     BigInteger size();
     
+    /**
+     * Returns an index of the given value (optional method).
+     *
+     * @param value a valid value from this sequence
+     * @return index of the value.
+     * @throws IllegalArgumentException if the value is not from this sequence.
+     */
+    default BigInteger indexOf( String value ) {
+        throw new UnsupportedOperationException();
+    }
+    
 }

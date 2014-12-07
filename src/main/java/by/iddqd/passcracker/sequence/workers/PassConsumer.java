@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.sequence.supplier;
+package by.iddqd.passcracker.sequence.workers;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;

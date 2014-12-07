@@ -20,9 +20,7 @@ package by.iddqd.passcracker.sequence;
 
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
@@ -32,37 +30,18 @@ import static java.math.BigInteger.ZERO;
  * Simple sequence of passwords to try out.
  * 
  * This sequence contains passwords, generated on the basis of the provided alphabet.
+ * Sequence is bijective base-k numeration.
  * 
  * @author Sergey Protasevich
  */
-public class SimplePassSequence extends AbstractPassSequence {
-
-    private final Alphabet alphabet;
-    private final int alphabetSize;
-    
-    // bijective base-k numeration
-    private final int[] initialValue;
+public class SimplePassSequence extends AbstractAlphabetPassSequence {
     
     private final BigInteger minBaseIndex;
     private final BigInteger size;
 
     
     public SimplePassSequence( Alphabet alphabet, int minLength, int maxLength, String startFrom ) {
-        super( minLength, maxLength );
-        
-        this.alphabet = alphabet;
-        this.alphabetSize = alphabet.size();
-        
-        initialValue = new int[ maxLength ];
-        Arrays.fill( initialValue, -1 );
-        if( startFrom == null ) {
-            for( int i = 0; i < minLength; i++ ) {
-                initialValue[ i ] = 0;
-            }
-        } else {
-            int[] startFromElements = alphabet.toElements( startFrom );
-            System.arraycopy( startFromElements, 0, initialValue, 0, startFromElements.length );
-        }
+        super( alphabet, minLength, maxLength, startFrom );
         
         this.minBaseIndex = calculateBaseIndex( initialValue );
         int[] maxValue = new int[ maxLength ];
@@ -76,7 +55,7 @@ public class SimplePassSequence extends AbstractPassSequence {
         BigInteger index = ZERO;
         for( int i = 0; i < elements.length; i++ ) {
             // index += ( value[ i ] + 1 ) * (long)pow( alphabet.length, i )
-            index = index.add( new BigInteger( Integer.toString( elements[ i ] + 1 ) )
+            index = index.add( BigInteger.valueOf( elements[ i ] + 1 )
                     .multiply( alphabet.sizeBI().pow( i ) ) );
         }
         return index;
@@ -89,6 +68,7 @@ public class SimplePassSequence extends AbstractPassSequence {
      * @return index of the value.
      * @throws IllegalArgumentException if the value is not from this sequence.
      */
+    @Override
     public BigInteger indexOf( String value ) {
         return calculateBaseIndex( alphabet.toElements( value ) ).subtract( minBaseIndex );
     }
@@ -100,52 +80,6 @@ public class SimplePassSequence extends AbstractPassSequence {
 
     @Override
     public Iterator<String> iterator() {
-        return new Iterator<String>() {
-            
-            private final int[] value = Arrays.copyOf( initialValue, initialValue.length );
-            private boolean hasNext = true;
-
-            @Override
-            public boolean hasNext() {
-                return hasNext;
-            }
-
-            @Override
-            public String next() {
-
-                if( !hasNext() ) {
-                    throw new NoSuchElementException();
-                }
-
-                StringBuilder sb = new StringBuilder();
-
-                for( int i = 0; i < maxLength && value[ i ] != -1; i++ ) {
-                    sb.append( alphabet.getElement( value[ i ] ) );
-                }
-
-                // incrementing the value
-                int pos = 0;
-                try {
-                    while( true ) {
-                        if( value[ pos ] == -1 ) {
-                            value[ pos ] = 0;
-                            break;
-                        }
-                        if( value[ pos ] == alphabetSize - 1 ) {
-                            value[ pos ] = 0;
-                            pos++;
-                            continue;
-                        }
-                        value[ pos ]++;
-                        break;
-                    }
-                } catch( IndexOutOfBoundsException ex ) {
-                    hasNext = false;
-                }
-
-                return sb.toString();
-            }
-        };
+        return new SimplePassSequenceIterator( initialValue, maxLength, alphabet );
     }
-    
 }

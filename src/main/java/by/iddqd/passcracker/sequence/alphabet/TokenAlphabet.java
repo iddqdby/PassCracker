@@ -50,7 +50,7 @@ public class TokenAlphabet extends ElementAlphabet {
         
         alphabet = new char[ elements.size() ][];
         lastIndex = alphabet.length - 1;
-        size = new BigInteger( String.valueOf( alphabet.length ) );
+        size = BigInteger.valueOf( alphabet.length );
         
         int p = 0;
         for( String element : elements ) {
