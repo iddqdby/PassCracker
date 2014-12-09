@@ -1,4 +1,4 @@
-PassSequence
+PassCracker
 ============
 
-Password generator
+Password cracker

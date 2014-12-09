@@ -1,5 +1,5 @@
 /**
- *  PassSequence
+ *  PassCracker
  *  Copyright (C) 2014  Sergey Protasevich
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 package by.iddqd.passcracker.sequence.workers;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -31,7 +32,7 @@ import java.util.function.Predicate;
  * 
  * @author Sergey Protasevich
  */
-public class PassConsumer implements Runnable {
+public class PassConsumer implements Callable<Boolean> {
 
     private final PassSupplier ps;
     private final BlockingQueue<String> queue;
@@ -54,16 +55,12 @@ public class PassConsumer implements Runnable {
     }
     
     @Override
-    public void run() {
-        while( ps.isRunning() || !queue.isEmpty() ) {
-            
-            if( Thread.currentThread().isInterrupted() ) {
-                return;
-            }
+    public Boolean call() {
+        while( !Thread.currentThread().isInterrupted() && ( ps.isRunning() || !queue.isEmpty() ) ) {
             
             try {
                 
-                String password = queue.poll( 60, TimeUnit.SECONDS );
+                String password = queue.poll( 1, TimeUnit.SECONDS );
                 if( password == null ) {
                     continue;
                 }
@@ -71,12 +68,14 @@ public class PassConsumer implements Runnable {
                 if( predicate.test( password ) ) {
                     ps.shutdown();
                     consumer.accept( password );
-                    return;
+                    return true;
                 }
                 
             } catch( InterruptedException ex ) {
-                return;
+                return false;
             }
         }
+        
+        return false;
     }
 }

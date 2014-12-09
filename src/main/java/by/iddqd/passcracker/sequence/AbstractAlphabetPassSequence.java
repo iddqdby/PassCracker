@@ -1,5 +1,5 @@
 /**
- *  PassSequence
+ *  PassCracker
  *  Copyright (C) 2014  Sergey Protasevich
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ public abstract class AbstractAlphabetPassSequence extends AbstractPassSequence 
     protected final int[] initialValue;
 
     
-    public AbstractAlphabetPassSequence(
+    protected AbstractAlphabetPassSequence(
             Alphabet alphabet, int minLength, int maxLength, String startFrom ) {
         super( minLength, maxLength );
         

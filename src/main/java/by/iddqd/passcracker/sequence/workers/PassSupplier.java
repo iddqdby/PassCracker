@@ -1,5 +1,5 @@
 /**
- *  PassSequence
+ *  PassCracker
  *  Copyright (C) 2014  Sergey Protasevich
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -109,7 +109,7 @@ public class PassSupplier {
      * 
      * @return true if this supplier is running; false otherwise.
      */
-    boolean isRunning() {
+    public boolean isRunning() {
         return thread.isAlive();
     }
 
@@ -118,7 +118,16 @@ public class PassSupplier {
      * 
      * @return the queue.
      */
-    BlockingQueue<String> getQueue() {
+    public BlockingQueue<String> getQueue() {
         return queue;
+    }
+
+    /**
+     * Get the PassSequence.
+     * 
+     * @return the PassSequence
+     */
+    public PassSequence getPassSequence() {
+        return passSequence;
     }
 }

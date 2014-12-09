@@ -1,5 +1,5 @@
 /**
- *  PassSequence
+ *  PassCracker
  *  Copyright (C) 2014  Sergey Protasevich
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@ public abstract class AbstractPassSequence implements PassSequence {
      * @param maxLength maximum length of passwords in this sequence
      * @throws IllegalArgumentException if minLength or maxLenght are illegal.
      */
-    public AbstractPassSequence( int minLength, int maxLength ) throws IllegalArgumentException {
+    protected AbstractPassSequence( int minLength, int maxLength ) throws IllegalArgumentException {
         
         if( maxLength < minLength || minLength < 0 ) {
             throw new IllegalArgumentException( "'maxLength' and/or 'minLength' are illegal" );
