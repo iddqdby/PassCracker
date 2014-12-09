@@ -24,8 +24,6 @@ import by.iddqd.passcracker.sequence.SimplePassSequence;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import java.util.Map;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * PassSequence factory.
  * 

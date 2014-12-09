@@ -23,8 +23,6 @@ import by.iddqd.passcracker.sequence.workers.PassSupplier;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.concurrent.BlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static java.util.Objects.requireNonNull;
 
