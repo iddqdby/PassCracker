@@ -19,6 +19,9 @@
 package by.iddqd.passcracker.crackers;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 
@@ -69,6 +72,37 @@ public abstract class Cracker {
      */
     public static Cracker loadCracker( Path path )
             throws IllegalArgumentException, ClassNotFoundException, IllegalStateException, IOException {
-        return CrackerClassLoader.get().loadCracker( path );
+        
+        if( !Files.isRegularFile( path ) || !Files.isReadable( path ) ) {
+            throw new IllegalArgumentException( path.toString()
+                    + " is not a regular file or is not readable." );
+        }
+        
+        String mimeType = Files.probeContentType( path );
+        
+        try {
+            
+            Class<? extends Cracker> crackerClass = CrackerClassLoader.get().loadClass( mimeType );
+            
+            Constructor<? extends Cracker> constructor = crackerClass.getDeclaredConstructor( Path.class );
+            constructor.setAccessible( true );
+            
+            Cracker cracker = constructor.newInstance( path );
+            cracker.testEnvironment();
+            
+            return cracker;
+            
+        } catch( NoSuchMethodException
+                | SecurityException
+                | InstantiationException
+                | IllegalAccessException
+                | IllegalArgumentException
+                | InvocationTargetException ex ) {
+            throw new RuntimeException(
+                    "Cracker implementation for MIME type " + mimeType
+                    + " has illegal declaration of constructor."
+                    + " Check the documentation of class Cracker"
+                    + " to properly declare the constructor.", ex );
+        }
     }
 }

@@ -23,10 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -43,106 +39,38 @@ class CrackerClassLoader extends ClassLoader {
 
     private static final CrackerClassLoader instance = new CrackerClassLoader();
     
-    private CrackerClassLoader() {}
-    
+    private CrackerClassLoader() {
+        super( CrackerClassLoader.class.getClassLoader() );
+    }
+
     /**
-     * Get cracker for given file.
-     * 
-     * @param path path to file
-     * @return the Cracker for given file
-     * @throws IllegalArgumentException if the file is not a regular file or is not readable
-     * @throws ClassNotFoundException if there is no suitable Cracker
-     * for the MIME type of the given file
-     * @throws IllegalStateException if this Cracker cannot operate
-     * under current environment
-     * @throws IOException if an I/O error occurs
+     * Loads the Cracker subclass for the specified MIME type.
+     *
+     * @param name the MIME type
+     * @return the resulting <tt>Class</tt> object
+     * @throws ClassNotFoundException if the class was not found
      */
-    Cracker loadCracker( Path path )
-            throws IllegalArgumentException, ClassNotFoundException, IllegalStateException, IOException {
-        
-        if( !Files.isRegularFile( path ) || !Files.isReadable( path ) ) {
-            throw new IllegalArgumentException( path.toString()
-                    + " is not a regular file or is not readable." );
-        }
-        
-        String mimeType = Files.probeContentType( path );
-        
-        try {
-            
-            Constructor<? extends Cracker> constructor =
-                    ((Class<? extends Cracker>)findClass( mimeType )).getDeclaredConstructor( Path.class );
-            
-            constructor.setAccessible( true );
-            Cracker cracker = constructor.newInstance( path );
-            cracker.testEnvironment();
-            
-            return cracker;
-            
-        } catch( NoSuchMethodException
-                | SecurityException
-                | InstantiationException
-                | IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException ex ) {
-            throw new RuntimeException(
-                    "Cracker implementation for MIME type " + mimeType
-                    + " has illegal declaration of constructor."
-                    + " Check the documentation of class Cracker"
-                    + " to properly declare the constructor.", ex );
-        }
+    @Override
+    public Class<? extends Cracker> loadClass( String name ) throws ClassNotFoundException {
+        return (Class<? extends Cracker>)super.loadClass( name );
     }
     
     @Override
     protected Class<?> findClass( String mimeType ) throws ClassNotFoundException {
         try {
             
-            String packageName = getClass().getPackage().getName();
-            List<Class<?>> classes = new ArrayList<>();
+            ClassLoader parentClassLoader = getParent();
+            List<String> classNames = getClassNames( getClass().getPackage() );
             
-            File file = new File( getClass()
-                    .getProtectionDomain().getCodeSource().getLocation().getPath() );
-            
-            if( file.isFile() ) { // run with JAR file
-                try( JarFile jar = new JarFile( file ) ) {
-                    
-                    String packageUrl = packageName.replace( '.', '/' );
-                    
-                    Enumeration<JarEntry> entries = jar.entries(); //gives ALL entries in jar
-                    while( entries.hasMoreElements() ) {
-                        
-                        String entryName = entries.nextElement().getName();
-                        
-                        if( entryName.startsWith( packageUrl ) && entryName.endsWith( ".class" ) ) {
-                            classes.add( Class.forName(
-                                    packageName + "." + entryName.substring(
-                                            entryName.lastIndexOf( '/' ) + 1,
-                                            entryName.lastIndexOf( '.' ) ) ) );
-                        }
-                    }
-                }
-            } else { // run with IDE
-
-                BufferedReader br = new BufferedReader( new InputStreamReader( (InputStream)getClass()
-                        .getResource( '/' + packageName.replace( '.', '/' ) + '/' ).getContent()));
-
-                String line;
-                while( ( line = br.readLine() ) != null ) {
-                    if( line.endsWith( ".class" ) ) {
-                        classes.add( Class.forName(
-                                packageName + "." + line.substring( 0, line.lastIndexOf( '.' ) ) ) );
-                    }
-                }
-            }
-            
-            for( Class<?> aClass : classes ) {
+            for( String className : classNames ) {
                 
+                Class<? extends Cracker> aClass;
                 MIMEtype[] mimeTypeAnnotations;
                 
                 try {
-                    mimeTypeAnnotations = aClass
-                            .asSubclass( Cracker.class )
-                            .getAnnotationsByType( MIMEtype.class );
-                } catch( ClassCastException ex ) {
+                    aClass = parentClassLoader.loadClass( className ).asSubclass( Cracker.class );
+                    mimeTypeAnnotations = aClass.getAnnotationsByType( MIMEtype.class );
+                } catch( ClassNotFoundException | ClassCastException ex ) {
                     continue;
                 }
                 
@@ -162,6 +90,48 @@ class CrackerClassLoader extends ClassLoader {
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
         }
+    }
+    
+    private List<String> getClassNames( Package aPackage ) throws IOException {
+        
+        String packageName = aPackage.getName();
+        List<String> classNames = new ArrayList<>();
+        
+        File file =
+                new File( getClass().getProtectionDomain().getCodeSource().getLocation().getPath() );
+        
+        if( file.isFile() ) { // run with JAR file
+            try( JarFile jarFile = new JarFile( file ) ) {
+
+                String packageUrl = packageName.replace( '.', '/' );
+
+                Enumeration<JarEntry> entries = jarFile.entries(); // gives all entries in jar
+                while( entries.hasMoreElements() ) {
+
+                    String entryName = entries.nextElement().getName();
+
+                    if( entryName.startsWith( packageUrl ) && entryName.endsWith( ".class" ) ) {
+                        String className = packageName + "." + entryName
+                                .substring( entryName.lastIndexOf( '/' ) + 1, entryName.lastIndexOf( '.' ) );
+                        classNames.add( className );
+                    }
+                }
+            }
+        } else { // run with IDE
+            try( BufferedReader br = new BufferedReader( new InputStreamReader( (InputStream)getParent()
+                    .getResource( '/' + packageName.replace( '.', '/' ) + '/' ).getContent() ) ) ) {
+
+                String line;
+                while( ( line = br.readLine() ) != null ) {
+                    if( line.endsWith( ".class" ) ) {
+                        String className = packageName + "." + line.substring( 0, line.lastIndexOf( '.' ) );
+                        classNames.add( className );
+                    }
+                }
+            }
+        }
+        
+        return classNames;
     }
     
     /**
