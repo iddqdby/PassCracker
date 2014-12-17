@@ -118,7 +118,7 @@ class CrackerClassLoader extends ClassLoader {
                 }
             }
         } else { // run with IDE
-            try( BufferedReader br = new BufferedReader( new InputStreamReader( (InputStream)getParent()
+            try( BufferedReader br = new BufferedReader( new InputStreamReader( (InputStream)getClass()
                     .getResource( '/' + packageName.replace( '.', '/' ) + '/' ).getContent() ) ) ) {
 
                 String line;

@@ -28,6 +28,8 @@ import java.util.Iterator;
  * @author Sergey Protasevich
  */
 public class PermutationsWithoutRepetitionsPassSequence extends SimplePassSequence {
+    
+    // TODO Improve this! Faster and smarter algorithm MUST be used to find next element of the sequence.
 
     public PermutationsWithoutRepetitionsPassSequence(
             Alphabet alphabet, int minLength, int maxLength, String startFrom ) {

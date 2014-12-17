@@ -37,6 +37,10 @@ class Rar extends Cracker {
         
         // TODO
         
+//        try {
+//            Thread.sleep( (long)( Math.random() * 1000 ) );
+//        } catch( InterruptedException ignore ) {}
+        
         return "rh345".equals( password );
     }
 

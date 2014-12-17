@@ -71,6 +71,8 @@ public class PassConsumer implements Callable<Boolean> {
                     return true;
                 }
                 
+                ps.setLastUsedPassword( password );
+                
             } catch( InterruptedException ex ) {
                 return false;
             }

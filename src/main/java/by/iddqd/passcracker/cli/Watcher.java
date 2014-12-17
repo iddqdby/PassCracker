@@ -33,12 +33,20 @@ import static java.util.Objects.requireNonNull;
  */
 class Watcher extends Thread {
     
+    private static final String FORMAT = "Threads: %d. Progress: %.2f%% [%s, %s left]";
+    private static final BigDecimal BD_100 = BigDecimal.valueOf( 100 );
+    private static final BigDecimal BD_LONG_MAX_VALUE = BigDecimal.valueOf( Long.MAX_VALUE );
+    
     private volatile PassSupplier passSupplier = null;
     private volatile Console console = null;
     
-    private volatile int minLength;
-    private volatile int maxLength;
+    private volatile PassSequence passSequence = null;
+    private volatile BlockingQueue<String> queue = null;
+    private volatile BigDecimal size = null;
+    
     private volatile int threads;
+    
+    private volatile long startTimestamp;
     
 
     /**
@@ -47,19 +55,21 @@ class Watcher extends Thread {
      * @param passSupplier the PassSupplier
      * @param console the Console
      */
-    public void start( PassSupplier passSupplier, Console console,
-            int minLength, int maxLength, int threads ) {
+    public void start( PassSupplier passSupplier, Console console, int threads ) {
         
         if( isAlive() ) {
             throw new IllegalThreadStateException( "Watcher is already started." );
         }
         
-        this.minLength = minLength;
-        this.maxLength = maxLength;
-        this.threads = threads;
-        
         this.passSupplier = requireNonNull( passSupplier );
         this.console = requireNonNull( console );
+        this.threads = threads;
+        
+        passSequence = passSupplier.getPassSequence();
+        queue = passSupplier.getQueue();
+        size = new BigDecimal( passSequence.size() );
+        
+        startTimestamp = System.currentTimeMillis();
         start();
     }
 
@@ -73,29 +83,41 @@ class Watcher extends Thread {
                     + " start(PassSupplier passSupplier, Console console)" );
         }
         
-        PassSequence passSequence = passSupplier.getPassSequence();
-        BlockingQueue<String> queue = passSupplier.getQueue();
-
-        BigDecimal size = new BigDecimal( passSequence.size() );
+        String timeElapsedString = "00:00:00";
         
-        String prefix = "Parameters: min length = " + minLength
-                + ", max length = " + maxLength
-                + ", threads = " + threads + ". ";
-        String format = prefix + "Progress: %.2f%%";
-
         while( !isInterrupted() && ( passSupplier.isRunning() || !queue.isEmpty() ) ) {
-
-            String currentPassword = queue.peek();
-            if( currentPassword == null ) {
+            
+            String lastUsedPassword = passSupplier.getLastUsedPassword();
+            if( lastUsedPassword == null ) {
                 continue;
             }
-
-            double percent = new BigDecimal( passSequence.indexOf( currentPassword ) )
-                    .divide( size, 5, RoundingMode.DOWN ).doubleValue()
-                    * 100;
+            
+            long timestamp = System.currentTimeMillis();
+            long timeElapsed = timestamp - startTimestamp;
+            timeElapsedString = timeString( timeElapsed );
+            
+            BigDecimal index = new BigDecimal( passSequence.indexOf( lastUsedPassword ) );
+            BigDecimal left = size.subtract( index );
+            
+            double percent = index.multiply( BD_100 )
+                    .divide( size, 2, RoundingMode.HALF_UP )
+                    .doubleValue();
+            
+            BigDecimal speed = index.divide( BigDecimal.valueOf( timeElapsed ), 64, RoundingMode.HALF_UP );
+            BigDecimal timeLeft;
+            try {
+                timeLeft = left.divide( speed, 64, RoundingMode.HALF_UP );
+            } catch( ArithmeticException ex ) {
+                timeLeft = null;
+            }
+            
+            String timeLeftString = timeLeft == null || timeLeft.compareTo( BD_LONG_MAX_VALUE ) == 1
+                    ? "undefined time"
+                    : '~' + timeString( timeLeft.longValue() );
 
             try {
-                console.print( String.format( format, percent ) );
+                console.print( String
+                        .format( FORMAT, threads, percent, timeElapsedString, timeLeftString ) );
                 Thread.sleep( 1000 );
             } catch( InterruptedException ex ) {
                 break;
@@ -103,7 +125,46 @@ class Watcher extends Thread {
         }
         
         try {
-            console.print( String.format( format, 100. ) );
+            console.print( String.format( FORMAT, threads, 100., timeElapsedString, "00:00:00" ) );
         } catch( InterruptedException ignore ) {}
+    }
+
+    private String timeString( long timeInMills ) {
+        
+        long diffSeconds = timeInMills / 1000 % 60;
+        long diffMinutes = timeInMills / (60 * 1000) % 60;
+        long diffHours = timeInMills / (60 * 60 * 1000) % 24;
+        long diffDays = timeInMills / (24 * 60 * 60 * 1000);
+        long diffYears = timeInMills / (365 * 24 * 60 * 60 * 1000);
+        
+        StringBuilder sb = new StringBuilder();
+        if( diffYears > 0 ) {
+            sb.append( diffYears ).append( " years " );
+        }
+        if( diffDays > 0 ) {
+            sb.append( diffDays ).append( " days " );
+        }
+        
+        if( diffHours < 10 ) {
+            sb.append( '0' ).append( diffHours );
+        } else {
+            sb.append( diffHours );
+        }
+        
+        sb.append( ':' );
+        
+        if( diffMinutes < 10 ) {
+            sb.append( '0' );
+        }
+        sb.append( diffMinutes );
+        
+        sb.append( ':' );
+        
+        if( diffSeconds < 10 ) {
+            sb.append( '0' );
+        }
+        sb.append( diffSeconds );
+        
+        return sb.toString();
     }
 }

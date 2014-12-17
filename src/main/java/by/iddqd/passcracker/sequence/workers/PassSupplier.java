@@ -38,6 +38,8 @@ public class PassSupplier {
     private final PassSequence passSequence;
     private final BlockingQueue<String> queue;
     
+    private volatile String lastUsedPassword = null;
+    
     private final Thread thread;
     
     /**
@@ -129,5 +131,23 @@ public class PassSupplier {
      */
     public PassSequence getPassSequence() {
         return passSequence;
+    }
+
+    /**
+     * Get last used password.
+     * 
+     * @return last used password
+     */
+    public String getLastUsedPassword() {
+        return lastUsedPassword;
+    }
+
+    /**
+     * Get last used password.
+     * 
+     * @param lastUsedPassword last used password
+     */
+    void setLastUsedPassword( String lastUsedPassword ) {
+        this.lastUsedPassword = lastUsedPassword;
     }
 }

@@ -60,8 +60,6 @@ public class PassCrackerCLI implements Runnable {
     private final Console console = new Console();
     private final Watcher watcher = new Watcher();
     
-    private final int minLength;
-    private final int maxLength;
     private final PassSequence passSequence;
     private final Alphabet alphabet;
     private final Path path;
@@ -78,8 +76,6 @@ public class PassCrackerCLI implements Runnable {
             Path path )
             throws IllegalArgumentException {
         
-        this.minLength = minLength;
-        this.maxLength = maxLength;
         this.path = path;
         
         alphabet = AlphabetFactory.create( alphabetType, options );
@@ -94,7 +90,7 @@ public class PassCrackerCLI implements Runnable {
             PassSupplier passSupplier = PassSupplier.create( passSequence );
             Cracker cracker = Cracker.loadCracker( path );
             
-            watcher.start( passSupplier, console, minLength, maxLength, THREADS );
+            watcher.start( passSupplier, console, THREADS );
             
             List<Future<Boolean>> futures = new ArrayList<>( THREADS );
             for( int i = 0; i < THREADS; i++ ) {

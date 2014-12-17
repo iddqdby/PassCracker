@@ -29,6 +29,8 @@ import java.util.Set;
  */
 class PermutationsWithoutRepetitionsPassSequenceIterator extends SimplePassSequenceIterator {
     
+    // TODO Improve this! Faster and smarter algorithm MUST be used to find next element of the sequence.
+    
     private final Set<Integer> elements;
 
     protected PermutationsWithoutRepetitionsPassSequenceIterator(
