@@ -35,20 +35,21 @@ public abstract class Cracker {
     private void setPath( Path path ) {
         this.path = path;
     }
-
-    /**
-     * Get the Path for this Cracker.
-     * 
-     * @return the Path
-     */
-    protected final Path getPath() {
-        return path;
+    
+    final void init() {
+        doInit( path );
     }
     
     /**
      * Initialize the Cracker.
+     * 
+     * @param path a path to the file
      */
-    protected abstract void init();
+    protected abstract void doInit( Path path );
+    
+    final boolean testEnvironment() {
+        return doTestEnvironment( path );
+    }
     
     /**
      * Test if this Cracker can operate under current environment.
@@ -58,9 +59,10 @@ public abstract class Cracker {
      * 
      * This method tests if current environment meet the needs of this Cracker.
      * 
+     * @param path a path to the file
      * @return true -- if this Cracker can operate under current environment, false -- otherwise
      */
-    public abstract boolean testEnvironment();
+    protected abstract boolean doTestEnvironment( Path path );
     
     /**
      * Test password.
@@ -68,7 +70,18 @@ public abstract class Cracker {
      * @param password a password
      * @return true if password fits, false otherwise
      */
-    public abstract boolean testPassword( String password );
+    public final boolean testPassword( String password ) {
+        return doTestPassword( path, password );
+    }
+    
+    /**
+     * Test password.
+     * 
+     * @param path a path to the file
+     * @param password a password
+     * @return true if password fits, false otherwise
+     */
+    protected abstract boolean doTestPassword( Path path, String password );
     
     /**
      * Get cracker for given file.
@@ -102,7 +115,7 @@ public abstract class Cracker {
                 throw new IllegalStateException(
                         "The cracker for MIME type " + mimeType
                         + " cannot operate under current environment." );
-            };
+            }
             
             return cracker;
             

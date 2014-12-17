@@ -18,6 +18,8 @@
 
 package by.iddqd.passcracker.crackers;
 
+import java.nio.file.Path;
+
 /**
  * Cracker for RAR archives.
  * 
@@ -27,18 +29,18 @@ package by.iddqd.passcracker.crackers;
 class Rar extends Cracker {
 
     @Override
-    protected void init() {
+    protected void doInit( Path path ) {
         // TODO
     }
 
     @Override
-    public boolean testEnvironment() {
+    protected boolean doTestEnvironment( Path path ) {
         // TODO
         return true;
     }
 
     @Override
-    public boolean testPassword( String password ) {
+    protected boolean doTestPassword( Path path, String password ) {
         
         // TODO
         
