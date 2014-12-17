@@ -38,9 +38,29 @@ public abstract class Cracker {
         this.path = path;
     }
     
-    final void init() {
+    private void init() {
         doInit( path );
     }
+    
+    private boolean testEnvironment() {
+        return doTestEnvironment( path );
+    }
+
+    private void prepare() {
+        doPrepare( path );
+    }
+    
+    /**
+     * Test password.
+     * 
+     * @param password a password
+     * @return true if password fits, false otherwise
+     */
+    public final boolean testPassword( String password ) {
+        return doTestPassword( path, password );
+    }
+    
+    /*--- Override in implementations ---*/
     
     /**
      * Initialize the Cracker.
@@ -48,10 +68,6 @@ public abstract class Cracker {
      * @param path a path to the file
      */
     protected abstract void doInit( Path path );
-    
-    final boolean testEnvironment() {
-        return doTestEnvironment( path );
-    }
     
     /**
      * Test if this Cracker can operate under current environment.
@@ -65,16 +81,13 @@ public abstract class Cracker {
      * @return true -- if this Cracker can operate under current environment, false -- otherwise
      */
     protected abstract boolean doTestEnvironment( Path path );
-    
+
     /**
-     * Test password.
+     * Prepare the Cracker.
      * 
-     * @param password a password
-     * @return true if password fits, false otherwise
+     * @param path a path to the file
      */
-    public final boolean testPassword( String password ) {
-        return doTestPassword( path, password );
-    }
+    protected abstract void doPrepare( Path path );
     
     /**
      * Test password.
@@ -84,6 +97,8 @@ public abstract class Cracker {
      * @return true if password fits, false otherwise
      */
     protected abstract boolean doTestPassword( Path path, String password );
+    
+    /*--- Factory method ---*/
     
     /**
      * Get cracker for given file.
@@ -123,6 +138,8 @@ public abstract class Cracker {
                         "The cracker for MIME type " + mimeType
                         + " cannot operate under current environment." );
             }
+            
+            cracker.prepare();
             
             return cracker;
             

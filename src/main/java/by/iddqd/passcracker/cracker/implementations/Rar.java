@@ -42,6 +42,11 @@ class Rar extends Cracker {
     }
 
     @Override
+    protected void doPrepare( Path path ) {
+        // TODO
+    }
+
+    @Override
     protected boolean doTestPassword( Path path, String password ) {
         
         // TODO
