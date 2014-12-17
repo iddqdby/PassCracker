@@ -18,18 +18,23 @@
 
 package by.iddqd.passcracker.crackers;
 
-import java.nio.file.Path;
-
 /**
- * Cracker for RAR archives
+ * Cracker for RAR archives.
  * 
  * @author Sergey Protasevich
  */
 @MIMEtype( "application/x-rar" )
 class Rar extends Cracker {
 
-    Rar( Path path ) {
-        super( path );
+    @Override
+    protected void init() {
+        // TODO
+    }
+
+    @Override
+    public boolean testEnvironment() {
+        // TODO
+        return true;
     }
 
     @Override
@@ -37,16 +42,6 @@ class Rar extends Cracker {
         
         // TODO
         
-//        try {
-//            Thread.sleep( (long)( Math.random() * 1000 ) );
-//        } catch( InterruptedException ignore ) {}
-        
         return "rh345".equals( password );
     }
-
-    @Override
-    public void testEnvironment() throws IllegalStateException {
-        // TODO
-    }
-    
 }

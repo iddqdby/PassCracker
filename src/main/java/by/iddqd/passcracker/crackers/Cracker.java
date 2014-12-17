@@ -19,8 +19,6 @@
 package by.iddqd.passcracker.crackers;
 
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -32,11 +30,25 @@ import java.nio.file.Path;
  */
 public abstract class Cracker {
     
-    protected final Path path;
+    private Path path;
 
-    protected Cracker( Path path ) {
+    private void setPath( Path path ) {
         this.path = path;
     }
+
+    /**
+     * Get the Path for this Cracker.
+     * 
+     * @return the Path
+     */
+    protected final Path getPath() {
+        return path;
+    }
+    
+    /**
+     * Initialize the Cracker.
+     */
+    protected abstract void init();
     
     /**
      * Test if this Cracker can operate under current environment.
@@ -46,9 +58,9 @@ public abstract class Cracker {
      * 
      * This method tests if current environment meet the needs of this Cracker.
      * 
-     * @throws IllegalStateException if this Cracker cannot operate under current environment
+     * @return true -- if this Cracker can operate under current environment, false -- otherwise
      */
-    public abstract void testEnvironment() throws IllegalStateException;
+    public abstract boolean testEnvironment();
     
     /**
      * Test password.
@@ -81,28 +93,25 @@ public abstract class Cracker {
         String mimeType = Files.probeContentType( path );
         
         try {
+            Cracker cracker = CrackerClassLoader.get().loadClass( mimeType ).newInstance();
             
-            Class<? extends Cracker> crackerClass = CrackerClassLoader.get().loadClass( mimeType );
+            cracker.setPath( path );
+            cracker.init();
             
-            Constructor<? extends Cracker> constructor = crackerClass.getDeclaredConstructor( Path.class );
-            constructor.setAccessible( true );
-            
-            Cracker cracker = constructor.newInstance( path );
-            cracker.testEnvironment();
+            if( !cracker.testEnvironment() ) {
+                throw new IllegalStateException(
+                        "The cracker for MIME type " + mimeType
+                        + " cannot operate under current environment." );
+            };
             
             return cracker;
             
-        } catch( NoSuchMethodException
-                | SecurityException
+        } catch( SecurityException
                 | InstantiationException
                 | IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException ex ) {
+                | IllegalArgumentException ex ) {
             throw new RuntimeException(
-                    "Cracker implementation for MIME type " + mimeType
-                    + " has illegal declaration of constructor."
-                    + " Check the documentation of class Cracker"
-                    + " to properly declare the constructor.", ex );
+                    "Cracker implementation for MIME type " + mimeType + " is illegal.", ex );
         }
     }
 }
