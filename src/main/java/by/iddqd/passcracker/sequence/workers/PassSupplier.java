@@ -143,7 +143,7 @@ public class PassSupplier {
     }
 
     /**
-     * Get last used password.
+     * Set last used password.
      * 
      * @param lastUsedPassword last used password
      */

@@ -108,7 +108,10 @@ public class PassCrackerCLI implements Runnable {
                 } catch( ExecutionException ex ) {
                     result = false;
                 }
-                found = found || result;
+                if( result ) {
+                    found = true;
+                    break;
+                }
             }
             
             if( found ) {

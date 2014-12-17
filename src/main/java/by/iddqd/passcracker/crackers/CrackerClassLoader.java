@@ -46,7 +46,7 @@ class CrackerClassLoader extends ClassLoader {
     /**
      * Loads the Cracker subclass for the specified MIME type.
      *
-     * @param name the MIME type
+     * @param name the MIME type, or the binary name of the subclass
      * @return the resulting <tt>Class</tt> object
      * @throws ClassNotFoundException if the class was not found
      */
@@ -85,7 +85,7 @@ class CrackerClassLoader extends ClassLoader {
                 }
             }
             
-            throw new ClassNotFoundException( "No class found for MIME type " + mimeType );
+            throw new ClassNotFoundException( "No class found for value \"" + mimeType + "\"" );
             
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
