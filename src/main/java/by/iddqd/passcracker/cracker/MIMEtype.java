@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.crackers;
+package by.iddqd.passcracker.cracker;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Repeatable;

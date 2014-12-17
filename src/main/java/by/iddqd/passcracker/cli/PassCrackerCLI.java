@@ -18,7 +18,7 @@
 
 package by.iddqd.passcracker.cli;
 
-import by.iddqd.passcracker.crackers.Cracker;
+import by.iddqd.passcracker.cracker.Cracker;
 import by.iddqd.passcracker.sequence.PassSequence;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import by.iddqd.passcracker.sequence.workers.PassConsumer;
