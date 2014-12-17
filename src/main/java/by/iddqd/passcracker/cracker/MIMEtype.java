@@ -32,6 +32,6 @@ import java.lang.annotation.Target;
 @Retention( RetentionPolicy.RUNTIME )
 @Target( ElementType.TYPE )
 @Repeatable( MIMEtypes.class )
-@interface MIMEtype {
+public @interface MIMEtype {
     String value();
 }

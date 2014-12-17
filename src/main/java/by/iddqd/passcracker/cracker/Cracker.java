@@ -19,6 +19,8 @@
 package by.iddqd.passcracker.cracker;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -106,7 +108,12 @@ public abstract class Cracker {
         String mimeType = Files.probeContentType( path );
         
         try {
-            Cracker cracker = CrackerClassLoader.get().loadClass( mimeType ).newInstance();
+            Class<? extends Cracker> crackerClass = CrackerClassLoader.get().loadClass( mimeType );
+            
+            Constructor<? extends Cracker> constructor = crackerClass.getDeclaredConstructor();
+            constructor.setAccessible( true );
+            
+            Cracker cracker = constructor.newInstance();
             
             cracker.setPath( path );
             cracker.init();
@@ -120,11 +127,13 @@ public abstract class Cracker {
             return cracker;
             
         } catch( SecurityException
+                | InvocationTargetException
                 | InstantiationException
+                | NoSuchMethodException
                 | IllegalAccessException
                 | IllegalArgumentException ex ) {
             throw new RuntimeException(
-                    "Cracker implementation for MIME type " + mimeType + " is illegal.", ex );
+                    "Cracker implementation for MIME type \"" + mimeType + "\" is not valid.", ex );
         }
     }
 }

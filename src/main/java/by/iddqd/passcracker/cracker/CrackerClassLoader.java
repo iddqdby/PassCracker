@@ -37,7 +37,10 @@ import java.util.jar.JarFile;
  */
 class CrackerClassLoader extends ClassLoader {
 
+    private static final String SUBPACKAGE = "implementations";
+    
     private static final CrackerClassLoader instance = new CrackerClassLoader();
+    
     
     private CrackerClassLoader() {
         super( CrackerClassLoader.class.getClassLoader() );
@@ -52,7 +55,11 @@ class CrackerClassLoader extends ClassLoader {
      */
     @Override
     public Class<? extends Cracker> loadClass( String name ) throws ClassNotFoundException {
-        return (Class<? extends Cracker>)super.loadClass( name );
+        try {
+            return super.loadClass( name ).asSubclass( Cracker.class );
+        } catch( ClassCastException ex ) {
+            throw new ClassNotFoundException( "Loaded class is not a subclass of Cracker", ex );
+        }
     }
     
     @Override
@@ -94,7 +101,7 @@ class CrackerClassLoader extends ClassLoader {
     
     private List<String> getClassNames( Package aPackage ) throws IOException {
         
-        String packageName = aPackage.getName();
+        String packageName = aPackage.getName() + "." + SUBPACKAGE;
         List<String> classNames = new ArrayList<>();
         
         File file =

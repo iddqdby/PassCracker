@@ -16,8 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.cracker;
+package by.iddqd.passcracker.cracker.implementations;
 
+import by.iddqd.passcracker.cracker.Cracker;
+import by.iddqd.passcracker.cracker.MIMEtype;
 import java.nio.file.Path;
 
 /**
