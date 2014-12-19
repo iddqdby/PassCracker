@@ -104,6 +104,7 @@ public class PassSupplier {
      */
     void shutdown() {
         thread.interrupt();
+        queue.clear();
     }
     
     /**

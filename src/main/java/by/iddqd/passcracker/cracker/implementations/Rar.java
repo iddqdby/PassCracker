@@ -110,10 +110,7 @@ class Rar extends Cracker {
     @Override
     protected boolean doTestPassword( Path path, String password ) throws InterruptedException {
         
-        int exitValue = executor.execute( "unrar", "e", "-p" + password, path.toString(), smallestFile )
-                .getExitValue();
-        
-        /* 
+        /*
          * Exit statuses of unrar:
          *     0      Successful operation.
          *     1      Warning. Non fatal error(s) occurred.
@@ -140,6 +137,9 @@ class Rar extends Cracker {
          * Throw exception:
          * any other exit code
          */
+        
+        int exitValue = executor.execute( "unrar", "t", "-p" + password, path.toString(), smallestFile )
+                .getExitValue();
         
         switch( exitValue ) {
             case 3:

@@ -100,12 +100,15 @@ public class PassCrackerCLI implements Runnable {
             
             Thread.sleep( 1000 );
             
+            List<ExecutionException> executionExceptions = new ArrayList<>();
+            
             boolean found = false;
             for( Future<Boolean> future : futures ) {
                 boolean result;
                 try {
                     result = future.get();
                 } catch( ExecutionException ex ) {
+                    executionExceptions.add( ex );
                     result = false;
                 }
                 if( result ) {
@@ -121,7 +124,20 @@ public class PassCrackerCLI implements Runnable {
                 console.terminate( "Success. The password is:", password );
                 exitCode = EXIT_CODE_SUCCESS;
             } else {
-                console.terminate( "Fail to find password." );
+                String message = "Fail to find password.";
+                if( executionExceptions.isEmpty() ) {
+                    console.terminate( message );
+                } else {
+                    console.terminate( executionExceptions.stream()
+                            .reduce(
+                                    new StringBuilder( message )
+                                            .append( "\nExceptions while execution:\n" ),
+                                    ( sb, ex ) -> sb
+                                            .append( ex.getCause().getMessage() )
+                                            .append( '\n' ),
+                                    ( sb1, sb2 ) -> sb1.append( sb2 ) )
+                            .toString() );
+                }
                 exitCode = EXIT_CODE_FAIL;
             }
         } catch( InterruptedException ex ) {
