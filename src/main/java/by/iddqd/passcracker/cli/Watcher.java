@@ -134,7 +134,7 @@ class Watcher extends Thread {
         long diffSeconds = timeInMills / 1000 % 60;
         long diffMinutes = timeInMills / (60 * 1000) % 60;
         long diffHours = timeInMills / (60 * 60 * 1000) % 24;
-        long diffDays = timeInMills / (24 * 60 * 60 * 1000);
+        long diffDays = timeInMills / (24 * 60 * 60 * 1000) % 365;
         long diffYears = timeInMills / (365 * 24 * 60 * 60 * 1000);
         
         StringBuilder sb = new StringBuilder();

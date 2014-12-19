@@ -20,7 +20,13 @@ package by.iddqd.passcracker.cracker.implementations;
 
 import by.iddqd.passcracker.cracker.Cracker;
 import by.iddqd.passcracker.cracker.MIMEtype;
+import by.iddqd.passcracker.shell.ExecutionResult;
+import by.iddqd.passcracker.shell.ShellExecutor;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 /**
  * Cracker for RAR archives.
@@ -29,28 +35,124 @@ import java.nio.file.Path;
  */
 @MIMEtype( "application/x-rar" )
 class Rar extends Cracker {
-
+    
+    // TODO Add support of WinRAR on Win
+    
+    private ShellExecutor executor;
+    private String smallestFile;
+    
     @Override
     protected void doInit( Path path ) {
-        // TODO
+        executor = new ShellExecutor( path.getParent() );
     }
 
     @Override
-    protected boolean doTestEnvironment( Path path ) {
-        // TODO
-        return true;
+    protected boolean doTestEnvironment( Path path ) throws InterruptedException {
+        try {
+            return Pattern.matches(
+                    "unrar: /[\\w/]*unrar.*",
+                    executor.execute( "whereis", "unrar" )
+                            .getStdOut().get( 0 ) );
+        } catch( IndexOutOfBoundsException ex ) {
+            // if the output is empty
+            return false;
+        }
     }
 
     @Override
-    protected void doPrepare( Path path ) {
-        // TODO
-    }
-
-    @Override
-    protected boolean doTestPassword( Path path, String password ) {
+    protected void doPrepare( Path path ) throws InterruptedException {
         
-        // TODO
+        // find the smallest file in the archive, if it is possible
         
-        return "rh345".equals( password );
+        ExecutionResult result = executor.execute( "unrar", "v", "-p-", path.toString() );
+        
+        List<String> stdErr = result.getStdErr();
+        if( !stdErr.isEmpty() ) {
+            throw new RuntimeException( stdErr.stream().reduce(
+                    "Error while executing unrar: ",
+                    ( message, line ) -> message + '\n' + line ) );
+        }
+        
+        Pattern filePattern = Pattern.compile(
+                "[A-Z\\.\\* ]{11} +" // Attributes
+                + " *(?<SIZE>\\d+) +" // Size
+                + " *\\d+ +" // Packed
+                + " *\\d+% *" // Ratio
+                + "\\d{2}\\-\\d{2}\\-\\d{2} +" // Date
+                + "\\d{2}:\\d{2} +" // Time
+                + "[\\dA-Z]{8} +" // Checksum
+                + "(?<NAME>.+)" ); // Name
+        
+        try {
+            smallestFile = result
+                    .getStdOut()
+                    .stream()
+                    .map( line -> filePattern.matcher( line ) )
+                    .filter( matcher -> matcher.matches() )
+                    .collect(
+                            () -> new TreeMap<Integer, String>(), // map size to filename
+                            ( map, matcher ) -> map.put(
+                                    Integer.parseInt( matcher.group( "SIZE" ) ),
+                                    matcher.group( "NAME" ) ),
+                            ( map1, map2 ) -> map1.putAll( map2 ) )
+                    .entrySet()
+                    .stream()
+                    .filter( entry -> entry.getKey() > 0 ) // filter out directoy enty (if any)
+                    .min( ( entry1, entry2 ) -> entry1.getKey().compareTo( entry2.getKey() ) )
+                    .get() // throws NoSuchElementException if there are no files in the stdOut
+                           // (archive has encrypted filenames)
+                    .getValue(); // get the file name
+        } catch( NoSuchElementException ex ) {
+            smallestFile = "";
+        }
+    }
+
+    @Override
+    protected boolean doTestPassword( Path path, String password ) throws InterruptedException {
+        
+        int exitValue = executor.execute( "unrar", "e", "-p" + password, path.toString(), smallestFile )
+                .getExitValue();
+        
+        /* 
+         * Exit statuses of unrar:
+         *     0      Successful operation.
+         *     1      Warning. Non fatal error(s) occurred.
+         *     2      A fatal error occurred.
+         *     3      Invalid checksum. Data is damaged.
+         *     5      Write error.
+         *     6      File open error.
+         *     7      Wrong command line option.
+         *     8      Not enough memory.
+         *     9      File create error.
+         *     10     No files matching the specified mask and options were found.
+         *     11     Wrong password.
+         *     255    User break.
+         * 
+         * Return true:
+         * 0 -- the password is correct
+         * 1 -- the password is correct (just a warning while extraction)
+         * 
+         * Return false:
+         * 3 -- if the password is wrong (for archives with unencrypted filenames)
+         * 10 -- if the password is wrong (for archives with encrypted filenames)
+         * 11 -- if the password is wrong (for RAR5 archives with encrypted filenames)
+         * 
+         * Throw exception:
+         * any other exit code
+         */
+        
+        switch( exitValue ) {
+            case 3:
+            case 10:
+            case 11:
+                return false;
+            case 0:
+            case 1:
+                return true;
+            default:
+                throw new RuntimeException( "Error while executing unrar:"
+                        + " exit status = " + exitValue
+                        + ", tested password = " + password );
+        }
     }
 }

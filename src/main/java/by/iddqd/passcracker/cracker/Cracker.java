@@ -38,15 +38,15 @@ public abstract class Cracker {
         this.path = path;
     }
     
-    private void init() {
+    private void init() throws InterruptedException {
         doInit( path );
     }
     
-    private boolean testEnvironment() {
+    private boolean testEnvironment() throws InterruptedException {
         return doTestEnvironment( path );
     }
 
-    private void prepare() {
+    private void prepare() throws InterruptedException {
         doPrepare( path );
     }
     
@@ -56,8 +56,13 @@ public abstract class Cracker {
      * @param password a password
      * @return true if password fits, false otherwise
      */
-    public final boolean testPassword( String password ) {
-        return doTestPassword( path, password );
+    public final boolean testPassword( String password ){
+        try {
+            return doTestPassword( path, password );
+        } catch( InterruptedException ex ) {
+            Thread.currentThread().interrupt(); // thread interruption must be handled by PassConsumer
+            return false;
+        }
     }
     
     /*--- Override in implementations ---*/
@@ -66,8 +71,9 @@ public abstract class Cracker {
      * Initialize the Cracker.
      * 
      * @param path a path to the file
+     * @throws InterruptedException if the current thread is interrupted
      */
-    protected abstract void doInit( Path path );
+    protected abstract void doInit( Path path ) throws InterruptedException;
     
     /**
      * Test if this Cracker can operate under current environment.
@@ -79,15 +85,17 @@ public abstract class Cracker {
      * 
      * @param path a path to the file
      * @return true -- if this Cracker can operate under current environment, false -- otherwise
+     * @throws InterruptedException if the current thread is interrupted
      */
-    protected abstract boolean doTestEnvironment( Path path );
+    protected abstract boolean doTestEnvironment( Path path ) throws InterruptedException;
 
     /**
      * Prepare the Cracker.
      * 
      * @param path a path to the file
+     * @throws InterruptedException if the current thread is interrupted
      */
-    protected abstract void doPrepare( Path path );
+    protected abstract void doPrepare( Path path ) throws InterruptedException;
     
     /**
      * Test password.
@@ -95,8 +103,9 @@ public abstract class Cracker {
      * @param path a path to the file
      * @param password a password
      * @return true if password fits, false otherwise
+     * @throws InterruptedException if the current thread is interrupted
      */
-    protected abstract boolean doTestPassword( Path path, String password );
+    protected abstract boolean doTestPassword( Path path, String password ) throws InterruptedException;
     
     /*--- Factory method ---*/
     
@@ -129,17 +138,22 @@ public abstract class Cracker {
             constructor.setAccessible( true );
             
             Cracker cracker = constructor.newInstance();
+            cracker.setPath( path.toAbsolutePath() );
             
-            cracker.setPath( path );
-            cracker.init();
-            
-            if( !cracker.testEnvironment() ) {
-                throw new IllegalStateException(
-                        "The cracker for MIME type " + mimeType
-                        + " cannot operate under current environment." );
+            try {
+                cracker.init();
+
+                if( !cracker.testEnvironment() ) {
+                    throw new IllegalStateException(
+                            "The cracker for MIME type " + mimeType
+                            + " cannot operate under current environment." );
+                }
+
+                cracker.prepare();
+                
+            } catch( InterruptedException ex ) {
+                throw new RuntimeException( "Unexpected interruption", ex );
             }
-            
-            cracker.prepare();
             
             return cracker;
             

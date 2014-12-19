@@ -114,12 +114,13 @@ public class PassCrackerCLI implements Runnable {
                 }
             }
             
+            watcher.interrupt();
+            Thread.sleep( 1000 );
+            
             if( found ) {
-                watcher.interrupt();
                 console.terminate( "Success. The password is:", password );
                 exitCode = EXIT_CODE_SUCCESS;
             } else {
-                watcher.interrupt();
                 console.terminate( "Fail to find password." );
                 exitCode = EXIT_CODE_FAIL;
             }

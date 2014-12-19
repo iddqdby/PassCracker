@@ -70,12 +70,12 @@ public class ShellExecutor {
      * 
      * It waits, if necessary, until the execution has terminated.
      * 
-     * @param command a specified shell command
+     * @param cmdArray array containing the command to call and its arguments
      * @return result of the execution
      * @throws InterruptedException if the current thread is interrupted
      */
-    public ExecutionResult execute( String command ) throws InterruptedException {
-        return execute( command, null, defaultWorkingDir );
+    public ExecutionResult execute( String... cmdArray ) throws InterruptedException {
+        return execute( cmdArray, null, defaultWorkingDir );
     }
     
     /**
@@ -83,15 +83,15 @@ public class ShellExecutor {
      * 
      * It waits, if necessary, until the execution has terminated.
      * 
-     * @param command a specified shell command
+     * @param cmdArray array containing the command to call and its arguments
      * @param envp array of strings, each element of which has environment
      * variable settings in the format name=value, or null if the subprocess
      * should inherit the environment of the current process
      * @return result of the execution
      * @throws InterruptedException if the current thread is interrupted
      */
-    public ExecutionResult execute( String command, String[] envp ) throws InterruptedException {
-        return execute( command, envp, defaultWorkingDir );
+    public ExecutionResult execute( String[] cmdArray, String[] envp ) throws InterruptedException {
+        return execute( cmdArray, envp, defaultWorkingDir );
     }
     
     /**
@@ -99,7 +99,7 @@ public class ShellExecutor {
      * 
      * It waits, if necessary, until the execution has terminated.
      * 
-     * @param command a specified shell command
+     * @param cmdArray array containing the command to call and its arguments
      * @param envp array of strings, each element of which has environment
      * variable settings in the format name=value, or null if the subprocess
      * should inherit the environment of the current process
@@ -110,10 +110,10 @@ public class ShellExecutor {
      * @return result of the execution
      * @throws InterruptedException if the current thread is interrupted
      */
-    public ExecutionResult execute( String command, String[] envp, File dir ) throws InterruptedException {
+    public ExecutionResult execute( String[] cmdArray, String[] envp, File dir ) throws InterruptedException {
         try {
             
-            Process p = RT.exec( command, envp, dir );
+            Process p = RT.exec( cmdArray, envp, dir );
             int exitValue = p.waitFor();
             
             List<String> stdOut = new ArrayList<>();
