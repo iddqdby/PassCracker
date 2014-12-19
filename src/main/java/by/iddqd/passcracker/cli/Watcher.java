@@ -96,7 +96,14 @@ class Watcher extends Thread {
             long timeElapsed = timestamp - startTimestamp;
             timeElapsedString = timeString( timeElapsed );
             
-            BigDecimal index = new BigDecimal( passSequence.indexOf( lastUsedPassword ) );
+            BigDecimal index;
+            try {
+                // TODO Temporary workaround; see TODO.txt, p. 1
+                index = new BigDecimal( passSequence.indexOf( lastUsedPassword ) );
+            } catch( IllegalArgumentException ex ) {
+                continue;
+            }
+            
             BigDecimal left = size.subtract( index );
             
             double percent = index.multiply( BD_100 )
