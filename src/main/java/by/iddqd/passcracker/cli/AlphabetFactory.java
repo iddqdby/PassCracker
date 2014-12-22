@@ -21,7 +21,11 @@ package by.iddqd.passcracker.cli;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import by.iddqd.passcracker.sequence.alphabet.CharacterAlphabet;
 import by.iddqd.passcracker.sequence.alphabet.TokenAlphabet;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -76,6 +80,20 @@ class AlphabetFactory {
                         tokens.add( options.get( "t" + i++ ) );
                     }
                     
+                    if( options.containsKey( "tokens" ) ) {
+                        List<String> tokensList;
+                        try {
+                            tokensList = Files
+                                    .readAllLines( Paths.get( options.get( "tokens" ) ) );
+                        } catch( IOException ex ) {
+                            throw new IllegalArgumentException(
+                                    "Fail to read file with tokens: I/O error.", ex );
+                        }
+                        tokensList.stream()
+                                .filter( token -> token.length() > 0 )
+                                .forEach( token -> tokens.add( token ) );
+                    }
+                    
                     alphabet = new TokenAlphabet( tokens );
                     
                     break;
@@ -110,6 +128,8 @@ class AlphabetFactory {
                 + " \"use digits and latin characters and space\"\n"
                 + "\t--additionalCharacters=[value] -- additional characters to use\n\n"
                 + "\ttype \"tokens\":\n\n"
+                + "\t--tokens=[value] -- path to text file with tokens (each token on new line);\n"
+                + "\tIMPORTANT: file must be saved in UTF-8 charset\n"
                 + "\t--t[n]=[value] where n = 1,2,3,... -- elements of the alphabet;\n"
                 + "\tfor example: --t1=foo --t2=bar --t3=baz";
     }
