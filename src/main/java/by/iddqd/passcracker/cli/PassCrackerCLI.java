@@ -51,7 +51,7 @@ public class PassCrackerCLI implements Runnable {
     public static final int EXIT_CODE_ERROR = 5;
     
     private static final Pattern OPTION = Pattern
-            .compile( "\\-\\-(?<OPTION>\\w+\\d*)\\=(?<VALUE>[\\d\\w]+)" );
+            .compile( "\\-\\-(?<OPTION>\\w+\\d*)\\=(?<VALUE>.+)" );
 
 
     private static final int THREADS = Runtime.getRuntime().availableProcessors() + 1;
@@ -214,7 +214,7 @@ public class PassCrackerCLI implements Runnable {
 
     private static String getUsageInfo() {
         return "Usage:\n\n"
-                + "java -jar PassCrackerCLI.jar [options...]\n\n"
+                + "java -jar PassCrackerCLI.jar [options...] [path to file]\n\n"
                 + "where options are:\n\n"
                 + "\t--minLength=[value] -- minimum amount of tokens in the generated passwords\n"
                 + "\t--maxLength=[value] -- maximum amount of tokens in the generated passwords\n"
