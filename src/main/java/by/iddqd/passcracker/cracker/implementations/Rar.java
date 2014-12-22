@@ -23,10 +23,8 @@ import by.iddqd.passcracker.cracker.MIMEtype;
 import by.iddqd.passcracker.shell.ExecutionResult;
 import by.iddqd.passcracker.shell.ShellExecutor;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -100,7 +98,7 @@ class Rar extends Cracker {
                     .min( ( entry1, entry2 ) -> entry1.getKey().compareTo( entry2.getKey() ) )
                     .get() // throws NoSuchElementException if there are no files in the stdOut
                            // (archive has encrypted filenames)
-                    .getValue(); // get the file name
+                    .getValue(); // get the filename
         } catch( NoSuchElementException ex ) {
             smallestFile = "";
         }
@@ -126,7 +124,7 @@ class Rar extends Cracker {
          * 
          * Return true:
          * 0 -- the password is correct
-         * 1 -- the password is correct (just a warning while extraction)
+         * 1 -- the password is correct (just a warning while extraction/testing)
          * 
          * Return false:
          * 3 -- if the password is wrong (for archives with unencrypted filenames)
