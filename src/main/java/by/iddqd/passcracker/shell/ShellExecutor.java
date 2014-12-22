@@ -25,6 +25,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Executor of shell commands.
@@ -83,6 +84,22 @@ public class ShellExecutor {
      * 
      * It waits, if necessary, until the execution has terminated.
      * 
+     * @param timeout the maximum time to wait
+     * @param unit the time unit of the timeout argument
+     * @param cmdArray array containing the command to call and its arguments
+     * @return result of the execution
+     * @throws InterruptedException if the current thread is interrupted
+     */
+    public ExecutionResult execute( long timeout, TimeUnit unit, String... cmdArray )
+            throws InterruptedException {
+        return execute( timeout, unit, cmdArray, null, defaultWorkingDir );
+    }
+    
+    /**
+     * Executes the specified shell command.
+     * 
+     * It waits, if necessary, until the execution has terminated.
+     * 
      * @param cmdArray array containing the command to call and its arguments
      * @param envp array of strings, each element of which has environment
      * variable settings in the format name=value, or null if the subprocess
@@ -92,6 +109,25 @@ public class ShellExecutor {
      */
     public ExecutionResult execute( String[] cmdArray, String[] envp ) throws InterruptedException {
         return execute( cmdArray, envp, defaultWorkingDir );
+    }
+    
+    /**
+     * Executes the specified shell command.
+     * 
+     * It waits, if necessary, until the execution has terminated.
+     * 
+     * @param timeout the maximum time to wait
+     * @param unit the time unit of the timeout argument
+     * @param cmdArray array containing the command to call and its arguments
+     * @param envp array of strings, each element of which has environment
+     * variable settings in the format name=value, or null if the subprocess
+     * should inherit the environment of the current process
+     * @return result of the execution
+     * @throws InterruptedException if the current thread is interrupted
+     */
+    public ExecutionResult execute( long timeout, TimeUnit unit, String[] cmdArray, String[] envp )
+            throws InterruptedException {
+        return execute( timeout, unit, cmdArray, envp, defaultWorkingDir );
     }
     
     /**
@@ -110,11 +146,49 @@ public class ShellExecutor {
      * @return result of the execution
      * @throws InterruptedException if the current thread is interrupted
      */
-    public ExecutionResult execute( String[] cmdArray, String[] envp, File dir ) throws InterruptedException {
+    public ExecutionResult execute( String[] cmdArray, String[] envp, File dir )
+            throws InterruptedException {
+        return execute( -1, null, cmdArray, envp, dir );
+    }
+    
+    /**
+     * Executes the specified shell command.
+     * 
+     * It waits, if necessary, until the execution has terminated.
+     * 
+     * @param timeout the maximum time to wait
+     * @param unit the time unit of the timeout argument
+     * @param cmdArray array containing the command to call and its arguments
+     * @param envp array of strings, each element of which has environment
+     * variable settings in the format name=value, or null if the subprocess
+     * should inherit the environment of the current process
+     * @param dir the working directory of the subprocess, or null if the
+     * subprocess should use default working directory of the current process;
+     * if default working directory is null, subprocess will inherit
+     * the working directory of the current process
+     * @return result of the execution
+     * @throws InterruptedException if the current thread is interrupted
+     */
+    public ExecutionResult execute( long timeout, TimeUnit unit, String[] cmdArray, String[] envp, File dir ) 
+            throws InterruptedException {
+        
+        Process p = null;
+        
         try {
             
-            Process p = RT.exec( cmdArray, envp, dir );
-            int exitValue = p.waitFor();
+            p = RT.exec( cmdArray, envp, dir );
+            int exitValue;
+            
+            if( timeout < 0 || unit == null ) {
+                exitValue = p.waitFor();
+            } else {
+                p.waitFor( timeout, unit );
+                try {
+                    exitValue = p.exitValue();
+                } catch( IllegalThreadStateException ex ) {
+                    exitValue = -1;
+                }
+            }
             
             List<String> stdOut = new ArrayList<>();
             List<String> stdErr = new ArrayList<>();
@@ -136,6 +210,10 @@ public class ShellExecutor {
             
         } catch( IOException ex ) {
             throw new RuntimeException( ex );
+        } finally {
+            if( p != null ) {
+                p.destroyForcibly();
+            }
         }
     }
 }

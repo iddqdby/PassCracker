@@ -26,7 +26,10 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
  * Cracker for RAR archives.
@@ -62,16 +65,12 @@ class Rar extends Cracker {
     @Override
     protected void doPrepare( Path path ) throws InterruptedException {
         
-        // find the smallest file in the archive, if it is possible
+        // Find the smallest file in the archive, if it is possible
         
-        ExecutionResult result = executor.execute( "unrar", "v", "-p-", path.toString() );
-        
-        List<String> stdErr = result.getStdErr();
-        if( !stdErr.isEmpty() ) {
-            throw new RuntimeException( stdErr.stream().reduce(
-                    "Error while executing unrar: ",
-                    ( message, line ) -> message + '\n' + line ) );
-        }
+        // Inner invocation of process.waitFor() may get stuck if the archive is very large,
+        // even if subprocess had read all the output (it takes less than 1 second even on archives >= 5 Gb),
+        // so we wait 6 seconds and then forcibly terminate the subprocess
+        ExecutionResult result = executor.execute( 6, SECONDS, "unrar", "v", "-p-", path.toString() );
         
         Pattern filePattern = Pattern.compile(
                 "[A-Z\\.\\* ]{11} +" // Attributes

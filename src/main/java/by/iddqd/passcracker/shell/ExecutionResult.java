@@ -42,6 +42,8 @@ public class ExecutionResult {
     /**
      * Get the exit value of the executed shell command.
      * 
+     * If execution of the command was forcibly terminated, the method will return -1.
+     * 
      * @return the exit value
      */
     public int getExitValue() {
