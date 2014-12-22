@@ -40,7 +40,7 @@ public class SimplePassSequence extends AbstractAlphabetPassSequence {
     private final BigInteger size;
 
     
-    public SimplePassSequence( Alphabet alphabet, int minLength, int maxLength, String startFrom ) {
+    public SimplePassSequence( Alphabet alphabet, int minLength, int maxLength, int[] startFrom ) {
         super( alphabet, minLength, maxLength, startFrom );
         
         this.minBaseIndex = calculateBaseIndex( initialValue );
@@ -69,8 +69,8 @@ public class SimplePassSequence extends AbstractAlphabetPassSequence {
      * @throws IllegalArgumentException if the value is not from this sequence.
      */
     @Override
-    public BigInteger indexOf( String value ) {
-        return calculateBaseIndex( alphabet.toElements( value ) ).subtract( minBaseIndex );
+    public BigInteger indexOf( int[] value ) {
+        return calculateBaseIndex( value ).subtract( minBaseIndex );
     }
 
     @Override
@@ -79,7 +79,7 @@ public class SimplePassSequence extends AbstractAlphabetPassSequence {
     }
 
     @Override
-    public Iterator<String> iterator() {
+    public Iterator<int[]> iterator() {
         return new SimplePassSequenceIterator( initialValue, maxLength, alphabet );
     }
 }

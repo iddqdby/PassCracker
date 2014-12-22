@@ -18,6 +18,7 @@
 
 package by.iddqd.passcracker.sequence.workers;
 
+import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +36,8 @@ import java.util.function.Predicate;
 public class PassConsumer implements Callable<Boolean> {
 
     private final PassSupplier ps;
-    private final BlockingQueue<String> queue;
+    private final Alphabet alphabet;
+    private final BlockingQueue<int[]> queue;
     
     private final Predicate<String> predicate;
     private final Consumer<String> consumer;
@@ -49,6 +51,7 @@ public class PassConsumer implements Callable<Boolean> {
      */
     public PassConsumer( PassSupplier ps, Predicate<String> predicate, Consumer<String> consumer ) {
         this.ps = ps;
+        this.alphabet = ps.getAlphabet();
         this.queue = ps.getQueue();
         this.predicate = predicate;
         this.consumer = consumer;
@@ -60,10 +63,12 @@ public class PassConsumer implements Callable<Boolean> {
             
             try {
                 
-                String password = queue.poll( 1, TimeUnit.SECONDS );
-                if( password == null ) {
+                int[] passValue = queue.poll( 1, TimeUnit.SECONDS );
+                if( passValue == null ) {
                     continue;
                 }
+                
+                String password = alphabet.buildString( passValue );
                 
                 if( predicate.test( password ) ) {
                     ps.shutdown();
@@ -71,7 +76,7 @@ public class PassConsumer implements Callable<Boolean> {
                     return true;
                 }
                 
-                ps.setLastUsedPassword( password );
+                ps.setLastUsedPassValue( passValue );
                 
             } catch( InterruptedException ex ) {
                 return false;

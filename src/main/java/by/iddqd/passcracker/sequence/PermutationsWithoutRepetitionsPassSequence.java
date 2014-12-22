@@ -32,7 +32,7 @@ public class PermutationsWithoutRepetitionsPassSequence extends SimplePassSequen
     // TODO Improve this! Faster and smarter algorithm MUST be used to find next element of the sequence.
 
     public PermutationsWithoutRepetitionsPassSequence(
-            Alphabet alphabet, int minLength, int maxLength, String startFrom ) {
+            Alphabet alphabet, int minLength, int maxLength, int[] startFrom ) {
         super( alphabet, minLength, maxLength, startFrom );
         if( maxLength > alphabetSize ) {
             throw new IllegalArgumentException(
@@ -42,7 +42,7 @@ public class PermutationsWithoutRepetitionsPassSequence extends SimplePassSequen
     }
 
     @Override
-    public Iterator<String> iterator() {
+    public Iterator<int[]> iterator() {
         return new PermutationsWithoutRepetitionsPassSequenceIterator( initialValue, maxLength, alphabet );
     }
 }

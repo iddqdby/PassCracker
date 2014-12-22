@@ -35,7 +35,7 @@ public abstract class AbstractAlphabetPassSequence extends AbstractPassSequence 
 
     
     protected AbstractAlphabetPassSequence(
-            Alphabet alphabet, int minLength, int maxLength, String startFrom ) {
+            Alphabet alphabet, int minLength, int maxLength, int[] startFrom ) {
         super( minLength, maxLength );
         
         this.alphabet = alphabet;
@@ -48,9 +48,17 @@ public abstract class AbstractAlphabetPassSequence extends AbstractPassSequence 
                 initialValue[ i ] = 0;
             }
         } else {
-            int[] startFromElements = alphabet.toElements( startFrom );
-            System.arraycopy( startFromElements, 0, initialValue, 0, startFromElements.length );
+            for( int p : startFrom ) {
+                if( p < 0 || p >= alphabetSize ) {
+                    throw new IllegalArgumentException( "Illegal 'startFrom' value." );
+                }
+            }
+            System.arraycopy( startFrom, 0, initialValue, 0, startFrom.length );
         }
     }
-    
+
+    @Override
+    public final Alphabet getAlphabet() {
+        return alphabet;
+    }
 }

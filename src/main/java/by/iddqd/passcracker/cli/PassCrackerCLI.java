@@ -64,7 +64,7 @@ public class PassCrackerCLI implements Runnable {
     private final Alphabet alphabet;
     private final Path path;
     
-    private volatile String password;
+    private volatile String password = null;
     
     private int exitCode;
     
@@ -192,7 +192,7 @@ public class PassCrackerCLI implements Runnable {
             int minLength = Integer.parseInt( options.get( "minLength" ) );
             int maxLength = Integer.parseInt( options.get( "maxLength" ) );
             
-            if( maxLength < minLength || minLength < 0 ) {
+            if( maxLength < minLength || minLength < 1 ) {
                 throw new IllegalArgumentException();
             }
             

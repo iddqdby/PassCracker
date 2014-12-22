@@ -41,7 +41,7 @@ class Watcher extends Thread {
     private volatile Console console = null;
     
     private volatile PassSequence passSequence = null;
-    private volatile BlockingQueue<String> queue = null;
+    private volatile BlockingQueue<int[]> queue = null;
     private volatile BigDecimal size = null;
     
     private volatile int threads;
@@ -87,7 +87,7 @@ class Watcher extends Thread {
         
         while( !isInterrupted() && ( passSupplier.isRunning() || !queue.isEmpty() ) ) {
             
-            String lastUsedPassword = passSupplier.getLastUsedPassword();
+            int[] lastUsedPassword = passSupplier.getLastUsedPassValue();
             if( lastUsedPassword == null ) {
                 continue;
             }
@@ -97,12 +97,7 @@ class Watcher extends Thread {
             timeElapsedString = timeString( timeElapsed );
             
             BigDecimal index;
-            try {
-                // TODO Temporary workaround; see TODO.txt, p. 1
-                index = new BigDecimal( passSequence.indexOf( lastUsedPassword ) );
-            } catch( IllegalArgumentException ex ) {
-                continue;
-            }
+            index = new BigDecimal( passSequence.indexOf( lastUsedPassword ) );
             
             BigDecimal left = size.subtract( index );
             

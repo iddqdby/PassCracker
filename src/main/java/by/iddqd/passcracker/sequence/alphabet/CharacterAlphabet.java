@@ -120,7 +120,13 @@ public class CharacterAlphabet extends ElementAlphabet {
         }
     }
 
-    @Override
+    /**
+     * Convert string to array of indices of this alphabet.
+     * 
+     * @param value a string
+     * @return the array of indices of this alphabet
+     * @throws IllegalArgumentException if the string contains illegal characters
+     */
     public int[] toElements( String value ) throws IllegalArgumentException {
         
         char[] charArray = value.toCharArray();

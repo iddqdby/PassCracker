@@ -65,14 +65,14 @@ public interface Alphabet {
      * @return the size of this alphabet as BigInteger.
      */
     BigInteger sizeBI();
-    
+
     /**
-     * Convert given value to an array of indices of elements of this alphabet.
+     * Build the string from the array of indices.
      * 
-     * @param value the value
-     * @return array of indices of elements of this alphabet.
-     * @throws IllegalArgumentException if the value cannot be converted.
+     * @param passValue array of indices
+     * @return the string
+     * @throws IllegalArgumentException if the array has illegal indices
      */
-    int[] toElements( String value ) throws IllegalArgumentException;
+    String buildString( int[] passValue );
     
 }

@@ -19,6 +19,7 @@
 package by.iddqd.passcracker.sequence.workers;
 
 import by.iddqd.passcracker.sequence.PassSequence;
+import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -36,9 +37,12 @@ public class PassSupplier {
     public static final int DEFAULT_QUEUE_CAPACITY = 1024;
     
     private final PassSequence passSequence;
-    private final BlockingQueue<String> queue;
+    private final Alphabet alphabet;
     
-    private volatile String lastUsedPassword = null;
+    private final BlockingQueue<int[]> queue;
+    
+    @SuppressWarnings( "VolatileArrayField" )
+    private volatile int[] lastUsedPassValue = null;
     
     private final Thread thread;
     
@@ -67,19 +71,22 @@ public class PassSupplier {
     }
     
     private PassSupplier( PassSequence passSequence, int queueCapacity ) {
+        
         this.passSequence = passSequence;
+        this.alphabet = passSequence.getAlphabet();
+        
         queue = new ArrayBlockingQueue<>( queueCapacity );
         thread = new Thread() {
             @Override
             public void run() {
-                for( String password : PassSupplier.this.passSequence ) {
+                for( int[] passValue : PassSupplier.this.passSequence ) {
                     
                     if( isInterrupted() ) {
                         return;
                     }
                     
                     try {
-                        queue.put( password );
+                        queue.put( passValue );
                     } catch( InterruptedException ex ) {
                         return;
                     }
@@ -121,7 +128,7 @@ public class PassSupplier {
      * 
      * @return the queue.
      */
-    public BlockingQueue<String> getQueue() {
+    public BlockingQueue<int[]> getQueue() {
         return queue;
     }
 
@@ -139,16 +146,20 @@ public class PassSupplier {
      * 
      * @return last used password
      */
-    public String getLastUsedPassword() {
-        return lastUsedPassword;
+    public int[] getLastUsedPassValue() {
+        return lastUsedPassValue;
     }
 
     /**
      * Set last used password.
      * 
-     * @param lastUsedPassword last used password
+     * @param lastUsedPassValue last used password
      */
-    void setLastUsedPassword( String lastUsedPassword ) {
-        this.lastUsedPassword = lastUsedPassword;
+    void setLastUsedPassValue( int[] lastUsedPassValue ) {
+        this.lastUsedPassValue = lastUsedPassValue;
+    }
+
+    Alphabet getAlphabet() {
+        return alphabet;
     }
 }

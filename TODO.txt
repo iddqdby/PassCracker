@@ -1,2 +1,0 @@
-1. Build passwords from arrays of indices and Alphabet inside PassConsumer; PassSupplier must produce only arrays of indices, not strings
-

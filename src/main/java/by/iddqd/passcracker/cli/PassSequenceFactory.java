@@ -22,7 +22,11 @@ import by.iddqd.passcracker.sequence.PassSequence;
 import by.iddqd.passcracker.sequence.PermutationsWithoutRepetitionsPassSequence;
 import by.iddqd.passcracker.sequence.SimplePassSequence;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * PassSequence factory.
@@ -55,12 +59,12 @@ class PassSequenceFactory {
         try {
             switch( sequenceType ) {
                 case "simple": {
-                    String startFrom = options.get( "startFrom" );
+                    int[] startFrom = readStartFromValue( options.get( "startFrom" ) );
                     passSequence = new SimplePassSequence( alphabet, minLength, maxLength, startFrom );
                     break;
                 }
                 case "permutations": {
-                    String startFrom = options.get( "startFrom" );
+                    int[] startFrom = readStartFromValue( options.get( "startFrom" ) );
                     passSequence = new PermutationsWithoutRepetitionsPassSequence(
                             alphabet, minLength, maxLength, startFrom );
                     break;
@@ -83,9 +87,40 @@ class PassSequenceFactory {
      */
     static String getOptionsInfo() {
         return "\ttype \"simple\":\n\n"
-                + "\t--startFrom=[value] -- value to start sequence from\n\n"
+                + "\t--startFrom=[value] -- value to start sequence from (JSON array of alphabet indices)\n\n"
                 + "\ttype \"permutations\":\n\n"
-                + "\t--startFrom=[value] -- value to start sequence from";
+                + "\t--startFrom=[value] -- value to start sequence from (JSON array of alphabet indices)";
     }
     
+    private static int[] readStartFromValue( String optionValue ) {
+        
+        if( optionValue == null ) {
+            return null;
+        }
+        
+        try {
+            return JSONArrayToIntArray( optionValue );
+        } catch( IllegalArgumentException ex ) {}
+        
+        try {
+            return JSONArrayToIntArray( Files.readAllLines( Paths.get( optionValue ) ).get( 0 ) );
+        } catch( IllegalArgumentException | IOException | IndexOutOfBoundsException ex ) {
+            throw new IllegalArgumentException( "Value of option 'startFrom' is illegal.", ex );
+        }
+    }
+
+    private static int[] JSONArrayToIntArray( String jsonArrayOfInt ) {
+        if( !Pattern.matches( "\\[ *((\\-?\\d+, *)*(\\-?\\d+){1})* *\\]", jsonArrayOfInt ) ) {
+            throw new IllegalArgumentException( "Fail to parce array of indices." );
+        }
+        
+        String[] array = jsonArrayOfInt.replaceAll( "[ \\[\\]]+", "" ).split( "," );
+        int[] intArray = new int[ array.length ];
+        
+        for( int i = 0; i < array.length; i++ ) {
+            intArray[ i ] = Integer.parseInt( array[ i ] );
+        }
+        
+        return intArray;
+    }
 }

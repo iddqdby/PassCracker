@@ -18,6 +18,7 @@
 
 package by.iddqd.passcracker.sequence;
 
+import by.iddqd.passcracker.sequence.alphabet.Alphabet;
 import java.math.BigInteger;
 import java.util.Iterator;
 
@@ -26,7 +27,7 @@ import java.util.Iterator;
  * 
  * @author Sergey Protasevich
  */
-public interface PassSequence extends Iterable<String> {
+public interface PassSequence extends Iterable<int[]> {
 
     /**
      * Returns an iterator over passwords.
@@ -34,7 +35,7 @@ public interface PassSequence extends Iterable<String> {
      * @return an Iterator.
      */
     @Override
-    Iterator<String> iterator();
+    Iterator<int[]> iterator();
 
     /**
      * Returns the size of this sequence.
@@ -44,13 +45,20 @@ public interface PassSequence extends Iterable<String> {
     BigInteger size();
     
     /**
+     * Get the alphabet of this sequence.
+     * 
+     * @return the alphabet of this sequence
+     */
+    Alphabet getAlphabet();
+    
+    /**
      * Returns an index of the given value (optional method).
      *
      * @param value a valid value from this sequence
      * @return index of the value.
      * @throws IllegalArgumentException if the value is not from this sequence.
      */
-    default BigInteger indexOf( String value ) {
+    default BigInteger indexOf( int[] value ) {
         throw new UnsupportedOperationException();
     }
     

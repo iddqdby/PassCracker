@@ -57,8 +57,18 @@ public class TokenAlphabet extends ElementAlphabet {
             alphabet[ p++ ] = element.toCharArray();
         }
     }
-
-    @Override
+    
+    /**
+     * TRY TO convert string to array of indices of this alphabet.
+     * 
+     * This method may return wrong value or throw an exception even on legal strings,
+     * if tokens of the alphabet have identical subsequences of characters.
+     * 
+     * @param value a string
+     * @return the array of indices of this alphabet
+     * @throws IllegalArgumentException if the string contains illegal characters,
+     * or if it is impossible to exactly determinate the initial tokens this value is built from
+     */
     public int[] toElements( String value ) throws IllegalArgumentException {
         
         List<Integer> indices = new ArrayList<>();

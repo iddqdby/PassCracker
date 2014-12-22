@@ -28,11 +28,10 @@ import java.util.NoSuchElementException;
  * 
  * @author Sergey Protasevich
  */
-class SimplePassSequenceIterator implements Iterator<String> {
+class SimplePassSequenceIterator implements Iterator<int[]> {
     
     protected final int[] value;
     protected final int maxLength;
-    protected final Alphabet alphabet;
     protected final int alphabetSize;
     
     private boolean hasNext = true;
@@ -41,7 +40,6 @@ class SimplePassSequenceIterator implements Iterator<String> {
     protected SimplePassSequenceIterator( int[] initialValue, int maxLength, Alphabet alphabet ) {
         this.value = Arrays.copyOf( initialValue, initialValue.length );
         this.maxLength = maxLength;
-        this.alphabet = alphabet;
         this.alphabetSize = alphabet.size();
     }
     
@@ -52,19 +50,15 @@ class SimplePassSequenceIterator implements Iterator<String> {
     }
 
     @Override
-    public String next() {
+    public int[] next() {
         if( !hasNext() ) {
             throw new NoSuchElementException();
         }
 
-        StringBuilder sb = new StringBuilder();
-        for( int i = 0; i < maxLength && value[ i ] != -1; i++ ) {
-            sb.append( alphabet.getElement( value[ i ] ) );
-        }
-
+        int[] v = Arrays.copyOf( value, value.length );
         increment();
 
-        return sb.toString();
+        return v;
     }
 
     // incrementing the value
