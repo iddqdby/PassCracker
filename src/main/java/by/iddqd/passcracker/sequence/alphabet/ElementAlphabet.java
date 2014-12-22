@@ -55,8 +55,10 @@ public abstract class ElementAlphabet implements Alphabet {
     public String buildString( int[] passValue ) {
         try {
             StringBuilder sb = new StringBuilder();
-            for( int i = 0; i < passValue.length && passValue[ i ] != -1; i++ ) {
-                sb.append( alphabet[ passValue[ i ] ] );
+            if( passValue.length > 0 ) {
+                for( int i = 0; i < passValue.length && passValue[ i ] != -1; i++ ) {
+                    sb.append( alphabet[ passValue[ i ] ] );
+                }
             }
             return sb.toString();
         } catch( IndexOutOfBoundsException ex ) {

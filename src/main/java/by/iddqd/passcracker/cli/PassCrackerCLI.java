@@ -37,6 +37,8 @@ import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Command-line interface for PassCracker
  * 
@@ -59,9 +61,12 @@ public class PassCrackerCLI implements Runnable {
     private final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
     private final Console console = new Console();
     private final Watcher watcher = new Watcher();
+    private final Saver saver = new Saver();
     
     private final PassSequence passSequence;
     private final Alphabet alphabet;
+    private final Path saveProgress;
+    private final int saveProgressTime;
     private final Path path;
     
     private volatile String password = null;
@@ -72,14 +77,18 @@ public class PassCrackerCLI implements Runnable {
     private PassCrackerCLI(
             int minLength, int maxLength,
             String sequenceType, String alphabetType,
+            Path saveProgress, int saveProgressTime,
             Map<String, String> options,
             Path path )
             throws IllegalArgumentException {
         
         this.path = path;
         
-        alphabet = AlphabetFactory.create( alphabetType, options );
-        passSequence = PassSequenceFactory.create( minLength, maxLength, sequenceType, alphabet, options );
+        this.alphabet = AlphabetFactory.create( alphabetType, options );
+        this.passSequence = PassSequenceFactory.create( minLength, maxLength, sequenceType, alphabet, options );
+        
+        this.saveProgress = saveProgress;
+        this.saveProgressTime = saveProgressTime;
     }
 
     @Override
@@ -91,6 +100,11 @@ public class PassCrackerCLI implements Runnable {
             Cracker cracker = Cracker.loadCracker( path );
             
             watcher.start( passSupplier, console, THREADS );
+            
+            if( saveProgress != null && saveProgressTime > 0 ) {
+                saver.setUp( saveProgress, saveProgressTime, passSupplier);
+                saver.start();
+            }
             
             List<Future<Boolean>> futures = new ArrayList<>( THREADS );
             for( int i = 0; i < THREADS; i++ ) {
@@ -161,6 +175,7 @@ public class PassCrackerCLI implements Runnable {
         } finally {
             watcher.interrupt();
             console.interrupt();
+            saver.interrupt();
             System.exit( exitCode );
         }
     }
@@ -203,7 +218,22 @@ public class PassCrackerCLI implements Runnable {
                 throw new IllegalArgumentException();
             }
             
-            return new PassCrackerCLI( minLength, maxLength, sequenceType, alphabetType, options, path );
+            Path saveProgress;
+            int saveProgressTime;
+            try {
+                saveProgress = Paths.get( requireNonNull( options.get( "saveProgress" ) ) );
+                saveProgressTime = Integer.parseInt( requireNonNull( options.get( "saveProgressTime" ) ) );
+            } catch( NullPointerException | IllegalArgumentException ex ) {
+                saveProgress = null;
+                saveProgressTime = 0;
+            }
+            
+            return new PassCrackerCLI(
+                    minLength, maxLength,
+                    sequenceType, alphabetType,
+                    saveProgress, saveProgressTime,
+                    options,
+                    path );
             
         } catch( IllegalArgumentException | NullPointerException ex ) {
             System.err.println( getUsageInfo() );
@@ -219,7 +249,9 @@ public class PassCrackerCLI implements Runnable {
                 + "\t--minLength=[value] -- minimum amount of tokens in the generated passwords\n"
                 + "\t--maxLength=[value] -- maximum amount of tokens in the generated passwords\n"
                 + "\t--sequenceType=[value] -- type of sequence\n"
-                + "\t--alphabetType=[value] -- type of alphabet\n\n"
+                + "\t--alphabetType=[value] -- type of alphabet\n"
+                + "\t--saveProgress=[value] (optional) -- path to file for saving last used password\n"
+                + "\t--saveProgressTime[value] (optional) -- amount of seconds between savings\n\n"
                 + "Supported types of sequence and its options:\n\n"
                 + PassSequenceFactory.getOptionsInfo()
                 + "\n\n"
