@@ -25,6 +25,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
+import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
 
@@ -52,10 +55,16 @@ class Saver extends Thread {
         
         try {
             this.path = requireNonNull( path ).toAbsolutePath();
-            Files.createFile( this.path );
+            if( !Files.exists( this.path ) ) {
+                Files.createFile( this.path );
+            } else {
+                if( !Files.isRegularFile( this.path ) || !Files.isWritable( this.path ) ) {
+                    throw new IOException( "Cannot write to file \"" + this.path.toString() + "\"" );
+                }
+            }
         } catch( IOException | IOError ex ) {
             throw new IllegalArgumentException(
-                    "Fail to create file for storing last used password.", ex );
+                    "Fail to set file for storing last used password.", ex );
         }
         
         this.passSupplier = requireNonNull( passSupplier );
@@ -80,7 +89,7 @@ class Saver extends Thread {
             
             JSONArrayOfInt lastUsedPassword = new JSONArrayOfInt( passSupplier.getLastUsedPassValue() );
             try {
-                Files.write( path, singleton( lastUsedPassword.toString() ) );
+                Files.write( path, singleton( lastUsedPassword.toString() ), CREATE, TRUNCATE_EXISTING, WRITE );
             } catch( IOException ex ) {
                 console.println( "Fail to save last used password: I/O error. Password: " + lastUsedPassword );
             }

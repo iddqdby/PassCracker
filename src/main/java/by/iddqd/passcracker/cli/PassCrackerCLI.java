@@ -272,6 +272,7 @@ public class PassCrackerCLI implements Runnable {
                 + "\t--sequenceType=[value] -- type of sequence\n"
                 + "\t--alphabetType=[value] -- type of alphabet\n"
                 + "\t--saveProgress=[value] (optional) -- path to file for saving last used password\n"
+                + "\t(the file will be owerwritten)\n"
                 + "\t--saveProgressTime=[value] (optional) -- amount of seconds between savings\n"
                 + "\t--log=[value] (optional) -- path to log file\n"
                 + "\t(only progress will be saved, runtime errors and result will not)\n\n"
