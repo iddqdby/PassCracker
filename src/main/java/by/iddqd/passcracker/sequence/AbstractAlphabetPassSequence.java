@@ -48,12 +48,11 @@ public abstract class AbstractAlphabetPassSequence extends AbstractPassSequence 
                 initialValue[ i ] = 0;
             }
         } else {
-            for( int p : startFrom ) {
-                if( p < 0 || p >= alphabetSize ) {
-                    throw new IllegalArgumentException( "Illegal 'startFrom' value." );
+            if( startFrom.length > 0 ) {
+                for( int i = 0; i < startFrom.length && startFrom[ i ] != -1; i++ ) {
+                    initialValue[ i ] = startFrom[ i ];
                 }
             }
-            System.arraycopy( startFrom, 0, initialValue, 0, startFrom.length );
         }
     }
 

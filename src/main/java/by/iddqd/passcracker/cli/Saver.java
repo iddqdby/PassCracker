@@ -75,7 +75,7 @@ class Saver extends Thread {
             try {
                 Thread.sleep( 1000 * wait );
             } catch( InterruptedException ex ) {
-                return;
+                break;
             }
             
             JSONArrayOfInt lastUsedPassword = new JSONArrayOfInt( passSupplier.getLastUsedPassValue() );

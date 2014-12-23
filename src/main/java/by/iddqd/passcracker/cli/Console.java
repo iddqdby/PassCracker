@@ -46,7 +46,6 @@ class Console extends Thread {
             whitespace.append( ' ' );
             erase.append( '\r' );
         }
-        err.print( whitespace );
         
         String eraseString = erase.toString();
         

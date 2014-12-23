@@ -69,6 +69,7 @@ public class PassCrackerCLI implements Runnable {
     private final Path saveProgress;
     private final int saveProgressTime;
     private final Path log;
+    private final Map<String, String> rawOptions;
     private final Path path;
     
     private volatile String password = null;
@@ -93,6 +94,8 @@ public class PassCrackerCLI implements Runnable {
         this.saveProgress = saveProgress;
         this.saveProgressTime = saveProgressTime;
         this.log = log;
+        
+        rawOptions = options;
     }
 
     @Override
@@ -103,7 +106,7 @@ public class PassCrackerCLI implements Runnable {
             PassSupplier passSupplier = PassSupplier.create( passSequence );
             Cracker cracker = Cracker.loadCracker( path );
             
-            console.println( "File type: " + cracker.getMimeType() + ", threads: " + THREADS );
+            console.println( "Type of file: " + cracker.getMimeType() + ", threads: " + THREADS );
             watcher.start( passSupplier, console );
             
             if( saveProgress != null && saveProgressTime > 0 ) {
@@ -111,7 +114,7 @@ public class PassCrackerCLI implements Runnable {
             }
             
             if( log != null ) {
-                logger.setUpAndStart( console, watcher, passSupplier, log );
+                logger.setUpAndStart( console, rawOptions, watcher, passSupplier, log );
             }
             
             List<Future<Boolean>> futures = new ArrayList<>( THREADS );
@@ -166,7 +169,7 @@ public class PassCrackerCLI implements Runnable {
             console.terminate( "Execution was interrupted." );
             exitCode = EXIT_CODE_INTERRUPTED;
         } catch( IllegalArgumentException ex ) {
-            console.terminate( "The file is not a regular file or is not readable." );
+            console.terminate( "Illegal argument: " + ex.getMessage() );
             exitCode = EXIT_CODE_ERROR;
         } catch( IllegalStateException ex ) {
             console.terminate( "Can not process this file under current environment." );
@@ -270,7 +273,8 @@ public class PassCrackerCLI implements Runnable {
                 + "\t--alphabetType=[value] -- type of alphabet\n"
                 + "\t--saveProgress=[value] (optional) -- path to file for saving last used password\n"
                 + "\t--saveProgressTime=[value] (optional) -- amount of seconds between savings\n"
-                + "\t--log=[value] (optional) -- path to log file;\n\n"
+                + "\t--log=[value] (optional) -- path to log file\n"
+                + "\t(only progress will be saved, runtime errors and result will not)\n\n"
                 + "Supported types of sequence and its options:\n\n"
                 + PassSequenceFactory.getOptionsInfo()
                 + "\n\n"

@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 import static java.lang.String.format;
 import static java.nio.file.StandardOpenOption.APPEND;
@@ -45,12 +46,15 @@ class Logger extends Thread {
     private volatile Watcher watcher = null;
     private volatile PassSupplier passSupplier;
     private volatile Path log = null;
+    private volatile Map<String, String> options = null;
     private volatile Console console = null;
     
-    void setUpAndStart( Console console, Watcher watcher, PassSupplier passSupplier, Path log ) {
+    void setUpAndStart( Console console, Map<String, String> options,
+            Watcher watcher, PassSupplier passSupplier, Path log ) {
         
         this.watcher = requireNonNull( watcher );
         this.passSupplier = requireNonNull( passSupplier );
+        this.options = requireNonNull( options );
         this.console = requireNonNull( console );
         
         try {
@@ -67,28 +71,39 @@ class Logger extends Thread {
     @Override
     @SuppressWarnings( "SleepWhileInLoop" )
     public void run() {
-        if( watcher == null || passSupplier == null || console == null || log == null ) {
+        if( watcher == null || passSupplier == null || console == null || options == null || log == null ) {
             throw new IllegalThreadStateException( "You must call Logger::setUpAndStart()." );
         }
         
-        while( !isInterrupted() ) {
+        String line = options.entrySet().stream()
+                .reduce( new StringBuilder( "Started: " )
+                        .append( new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" ).format( new Date() ) )
+                        .append( "\nOptions:\n" ),
+                        ( sb, entry ) -> sb
+                                .append( entry.getKey() ).append( " = " )
+                                .append( entry.getValue() ).append( '\n' ),
+                        ( sb1, sb2 ) -> sb1.append( sb2 ) )
+                .toString();
+        
+        do {
+            try {
+                Files.write( log, singleton( line ), WRITE, APPEND );
+            } catch( IOException ex ) {
+                console.println( "Fail to save progress to the log: I/O error. Info: " + line );
+            }
+            
             try {
                 Thread.sleep( 1000 * WAIT_TIME );
             } catch( InterruptedException ex ) {
-                return;
+                break;
             }
             
             String dateTime = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" ).format( new Date() );
             String currentInfo = watcher.getCurrentInfo();
             String lastUsedPassword = new JSONArrayOfInt( passSupplier.getLastUsedPassValue() ).toString();
             
-            String line = format( "[%s] [%s] [Last used password: %s]", dateTime, currentInfo, lastUsedPassword );
+            line = format( "[%s] [%s] [Last used password: %s]", dateTime, currentInfo, lastUsedPassword );
             
-            try {
-                Files.write( log, singleton( line ), WRITE, APPEND );
-            } catch( IOException ex ) {
-                console.println( "Fail to save progress to the log: I/O error. Info: " + line );
-            }
-        }
+        } while( !isInterrupted() );
     }
 }
