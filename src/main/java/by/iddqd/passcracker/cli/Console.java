@@ -21,6 +21,9 @@ package by.iddqd.passcracker.cli;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
+import static java.lang.System.err;
+import static java.lang.System.out;
+
 /**
  * Console is used for printing information to STDOUT and STDERR.
  * 
@@ -43,7 +46,7 @@ class Console extends Thread {
             whitespace.append( ' ' );
             erase.append( '\r' );
         }
-        System.err.print( whitespace );
+        err.print( whitespace );
         
         String eraseString = erase.toString();
         
@@ -61,26 +64,30 @@ class Console extends Thread {
                 line.append( ' ' );
             }
             
-            System.err.print( eraseString + line.toString() );
+            err.print( eraseString + line.toString() );
         }
         
-        System.err.println( '\n' + terminationMessage );
+        err.println( '\n' + terminationMessage );
         if( result != null ) {
-            System.out.println( result );
+            out.println( result );
         }
     }
     
-    public void print( String string ) throws InterruptedException {
+    void print( String string ) throws InterruptedException {
         queue.put( string );
     }
     
-    public void terminate( String message, String result ) {
+    void terminate( String message, String result ) {
         this.terminationMessage = message;
         this.result = result;
         interrupt();
     }
 
-    public void terminate( String message ) {
+    void terminate( String message ) {
         terminate( message, null );
+    }
+
+    void println( String string ) {
+        err.println( '\n' + string );
     }
 }

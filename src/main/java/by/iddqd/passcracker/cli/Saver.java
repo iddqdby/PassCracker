@@ -24,8 +24,6 @@ import java.io.IOError;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static java.util.Collections.singleton;
 import static java.util.Objects.requireNonNull;
@@ -44,8 +42,9 @@ class Saver extends Thread {
     private volatile Path path = null;
     private volatile long wait = 0;
     private volatile PassSupplier passSupplier = null;
+    private volatile Console console = null;
     
-    public void setUp( Path path, long wait, PassSupplier passSupplier ) {
+    public void setUpAndStart( Console console, Path path, long wait, PassSupplier passSupplier ) {
         if( wait <= 0 ) {
             throw new IllegalArgumentException( "Wait time must be > 0." );
         }
@@ -60,13 +59,16 @@ class Saver extends Thread {
         }
         
         this.passSupplier = requireNonNull( passSupplier );
+        this.console = requireNonNull( console );
+        
+        start();
     }
 
     @Override
     @SuppressWarnings( "SleepWhileInLoop" )
     public void run() {
-        if( path == null || passSupplier == null || wait == 0 ) {
-            throw new IllegalThreadStateException( "You must call Saver::setUp() before starting the Saver." );
+        if( path == null || passSupplier == null || console == null || wait == 0 ) {
+            throw new IllegalThreadStateException( "You must call Saver::setUpAndStart()." );
         }
         
         while( !isInterrupted() ) {
@@ -80,10 +82,7 @@ class Saver extends Thread {
             try {
                 Files.write( path, singleton( lastUsedPassword.toString() ) );
             } catch( IOException ex ) {
-                Logger.getLogger( Saver.class.getName() ).log(
-                        Level.SEVERE,
-                        "Fail to save last used password: I/O error. Password: " + lastUsedPassword,
-                        ex );
+                console.println( "Fail to save last used password: I/O error. Password: " + lastUsedPassword );
             }
         }
     }

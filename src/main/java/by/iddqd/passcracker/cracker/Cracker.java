@@ -23,8 +23,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -34,8 +32,22 @@ import java.util.logging.Logger;
  */
 public abstract class Cracker {
     
+    private String mimeType;
     private Path path;
 
+    private void setMimeType( String mimeType ) {
+        this.mimeType = mimeType;
+    }
+    
+    /**
+     * Get MIME type this cracker created for.
+     * 
+     * @return the MIME type
+     */
+    public final String getMimeType() {
+        return mimeType;
+    }
+    
     private void setPath( Path path ) {
         this.path = path;
     }
@@ -67,7 +79,7 @@ public abstract class Cracker {
         }
     }
     
-    /*--- Override in implementations ---*/
+    /*--- Must be implemented ---*/
     
     /**
      * Initialize the Cracker.
@@ -141,6 +153,7 @@ public abstract class Cracker {
             
             Cracker cracker = constructor.newInstance();
             cracker.setPath( path.toAbsolutePath() );
+            cracker.setMimeType( mimeType );
             
             try {
                 cracker.init();

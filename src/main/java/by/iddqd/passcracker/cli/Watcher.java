@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.concurrent.BlockingQueue;
 
+import static java.lang.String.format;
 import static java.util.Objects.requireNonNull;
 
 /**
@@ -33,7 +34,7 @@ import static java.util.Objects.requireNonNull;
  */
 class Watcher extends Thread {
     
-    private static final String FORMAT = "Threads: %d. Progress: %.2f%% [%s, %s left]";
+    private static final String FORMAT = "Progress: %.2f%% [%s, %s left]";
     private static final BigDecimal BD_100 = BigDecimal.valueOf( 100 );
     private static final BigDecimal BD_LONG_MAX_VALUE = BigDecimal.valueOf( Long.MAX_VALUE );
     
@@ -44,9 +45,9 @@ class Watcher extends Thread {
     private volatile BlockingQueue<int[]> queue = null;
     private volatile BigDecimal size = null;
     
-    private volatile int threads;
-    
     private volatile long startTimestamp;
+    
+    private volatile String currentInfo = "";
     
 
     /**
@@ -55,7 +56,7 @@ class Watcher extends Thread {
      * @param passSupplier the PassSupplier
      * @param console the Console
      */
-    public void start( PassSupplier passSupplier, Console console, int threads ) {
+    public void start( PassSupplier passSupplier, Console console ) {
         
         if( isAlive() ) {
             throw new IllegalThreadStateException( "Watcher is already started." );
@@ -63,7 +64,6 @@ class Watcher extends Thread {
         
         this.passSupplier = requireNonNull( passSupplier );
         this.console = requireNonNull( console );
-        this.threads = threads;
         
         passSequence = passSupplier.getPassSequence();
         queue = passSupplier.getQueue();
@@ -118,8 +118,8 @@ class Watcher extends Thread {
                     : '~' + timeString( timeLeft.longValue() );
 
             try {
-                console.print( String
-                        .format( FORMAT, threads, percent, timeElapsedString, timeLeftString ) );
+                currentInfo = format( FORMAT, percent, timeElapsedString, timeLeftString );
+                console.print( currentInfo );
                 Thread.sleep( 1000 );
             } catch( InterruptedException ex ) {
                 break;
@@ -127,7 +127,7 @@ class Watcher extends Thread {
         }
         
         try {
-            console.print( String.format( FORMAT, threads, 100., timeElapsedString, "00:00:00" ) );
+            console.print( format( FORMAT, 100., timeElapsedString, "00:00:00" ) );
         } catch( InterruptedException ignore ) {}
     }
 
@@ -168,5 +168,9 @@ class Watcher extends Thread {
         sb.append( diffSeconds );
         
         return sb.toString();
+    }
+
+    String getCurrentInfo() {
+        return currentInfo;
     }
 }
