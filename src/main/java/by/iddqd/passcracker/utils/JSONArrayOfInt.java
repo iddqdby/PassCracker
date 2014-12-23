@@ -51,19 +51,15 @@ public final class JSONArrayOfInt {
         
         arrayValue = requireNonNull( value );
         
-        StringBuilder sb = new StringBuilder( "[" );
-        
         List<String> list = new ArrayList<>();
         for( int p : value ) {
             list.add( String.valueOf( p ) );
         }
         
-        if( !list.isEmpty() ) {
-            sb.append( list.remove( 0 ) );
-            list.stream().forEachOrdered( index -> sb.append( ',' ).append( index ) );
-        }
-        
-        stringValue = sb.append( "]" ).toString();
+        stringValue = new StringBuilder( "[" )
+                .append( String.join( ",", list ) )
+                .append( "]" )
+                .toString();
     }
 
     /**

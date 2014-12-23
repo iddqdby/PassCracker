@@ -90,7 +90,7 @@ class AlphabetFactory {
                                     "Fail to read file with tokens: I/O error.", ex );
                         }
                         tokensList.stream()
-                                .filter( token -> token.length() > 0 )
+                                .filter( token -> !token.isEmpty() )
                                 .forEach( token -> tokens.add( token ) );
                     }
                     

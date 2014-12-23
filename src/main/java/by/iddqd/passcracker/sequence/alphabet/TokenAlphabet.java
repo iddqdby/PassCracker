@@ -73,7 +73,7 @@ public class TokenAlphabet extends ElementAlphabet {
         
         List<Integer> indices = new ArrayList<>();
         
-        init: while( value.length() > 0 ) {
+        init: while( !value.isEmpty() ) {
             for( int i = 0; i < alphabet.length; i++ ) {
                 String token = new String( alphabet[i] );
                 if( value.startsWith( token ) ) {
@@ -83,7 +83,7 @@ public class TokenAlphabet extends ElementAlphabet {
                 }
             }
             throw new IllegalArgumentException( "Value is illegal" );
-        };
+        }
         
         int[] array = new int[ indices.size() ];
         int i = 0;
