@@ -75,7 +75,7 @@ public class TokenAlphabet extends ElementAlphabet {
         
         init: while( !value.isEmpty() ) {
             for( int i = 0; i < alphabet.length; i++ ) {
-                String token = new String( alphabet[i] );
+                String token = String.valueOf( alphabet[ i ] ).intern();
                 if( value.startsWith( token ) ) {
                     value = value.substring( token.length() );
                     indices.add( i );
