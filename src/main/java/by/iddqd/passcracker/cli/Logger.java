@@ -30,6 +30,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static java.nio.file.StandardOpenOption.APPEND;
+import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.WRITE;
 import static java.util.Objects.requireNonNull;
 import static java.util.Collections.singleton;
@@ -59,10 +60,16 @@ class Logger extends Thread {
         
         try {
             this.log = requireNonNull( log ).toAbsolutePath();
-            Files.createFile( this.log );
+            if( !Files.exists( this.log ) ) {
+                Files.createFile( this.log );
+            } else {
+                if( !Files.isRegularFile( this.log ) || !Files.isWritable( this.log ) ) {
+                    throw new IOException( "Cannot write to file \"" + log.toString() + "\"" );
+                }
+            }
         } catch( IOException | IOError ex ) {
             throw new IllegalArgumentException(
-                    "Fail to create file for storing last used password.", ex );
+                    "Fail to set file for storing logs.", ex );
         }
         
         start();
@@ -76,6 +83,7 @@ class Logger extends Thread {
         }
         
         String line = options.entrySet().stream()
+                .sorted( ( entry1, entry2 ) -> entry1.getKey().compareTo( entry2.getKey() ) )
                 .reduce( new StringBuilder( "Started: " )
                         .append( new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" ).format( new Date() ) )
                         .append( "\nOptions:\n" ),
@@ -87,7 +95,7 @@ class Logger extends Thread {
         
         do {
             try {
-                Files.write( log, singleton( line ), WRITE, APPEND );
+                Files.write( log, singleton( line ), CREATE, WRITE, APPEND );
             } catch( IOException ex ) {
                 console.println( "Fail to save progress to the log: I/O error. Info: " + line );
             }
