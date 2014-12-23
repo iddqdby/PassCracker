@@ -56,7 +56,7 @@ public class PassCrackerCLI implements Runnable {
             .compile( "\\-\\-(?<OPTION>\\w+\\d*)\\=(?<VALUE>.+)" );
 
 
-    private static final int THREADS = Runtime.getRuntime().availableProcessors() + 1;
+    private static final int DEFAULT_THREADS = Runtime.getRuntime().availableProcessors() + 1;
     
     private final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
     private final Console console = new Console();
@@ -66,11 +66,18 @@ public class PassCrackerCLI implements Runnable {
     
     private final PassSequence passSequence;
     private final Alphabet alphabet;
+    
+    private final int threads;
+    
     private final Path saveProgress;
     private final int saveProgressTime;
+    
     private final Path log;
+    
     private final Map<String, String> rawOptions;
+    
     private final Path path;
+    
     
     private volatile String password = null;
     
@@ -80,6 +87,7 @@ public class PassCrackerCLI implements Runnable {
     private PassCrackerCLI(
             int minLength, int maxLength,
             String sequenceType, String alphabetType,
+            int threads,
             Path saveProgress, int saveProgressTime,
             Path log,
             Map<String, String> options,
@@ -90,6 +98,8 @@ public class PassCrackerCLI implements Runnable {
         
         this.alphabet = AlphabetFactory.create( alphabetType, options );
         this.passSequence = PassSequenceFactory.create( minLength, maxLength, sequenceType, alphabet, options );
+        
+        this.threads = threads;
         
         this.saveProgress = saveProgress;
         this.saveProgressTime = saveProgressTime;
@@ -106,7 +116,7 @@ public class PassCrackerCLI implements Runnable {
             PassSupplier passSupplier = PassSupplier.create( passSequence );
             Cracker cracker = Cracker.loadCracker( path );
             
-            console.println( "Type of file: " + cracker.getMimeType() + ", threads: " + THREADS );
+            console.println( "Type of file: " + cracker.getMimeType() + ", threads: " + threads );
             watcher.start( passSupplier, console );
             
             if( saveProgress != null && saveProgressTime > 0 ) {
@@ -117,8 +127,8 @@ public class PassCrackerCLI implements Runnable {
                 logger.setUpAndStart( console, rawOptions, watcher, passSupplier, log );
             }
             
-            List<Future<Boolean>> futures = new ArrayList<>( THREADS );
-            for( int i = 0; i < THREADS; i++ ) {
+            List<Future<Boolean>> futures = new ArrayList<>( threads );
+            for( int i = 0; i < threads; i++ ) {
                 futures.add( EXECUTOR
                         .submit( new PassConsumer( passSupplier, cracker::testPassword, this::savePassword ) ) );
             }
@@ -248,9 +258,20 @@ public class PassCrackerCLI implements Runnable {
                 log = null;
             }
             
+            int threads;
+            try {
+                threads = Integer.parseInt( requireNonNull( options.get( "threads" ) ) );
+                if( threads < 1 ) {
+                    throw new IllegalArgumentException();
+                }
+            } catch( NullPointerException | IllegalArgumentException ex ) {
+                threads = DEFAULT_THREADS;
+            }
+            
             return new PassCrackerCLI(
                     minLength, maxLength,
                     sequenceType, alphabetType,
+                    threads,
                     saveProgress, saveProgressTime,
                     log,
                     options,
@@ -271,6 +292,8 @@ public class PassCrackerCLI implements Runnable {
                 + "\t--maxLength=[value] -- maximum amount of tokens in the generated passwords\n"
                 + "\t--sequenceType=[value] -- type of sequence\n"
                 + "\t--alphabetType=[value] -- type of alphabet\n"
+                + "\t--threads=[value] (optional) -- number of working threads\n"
+                + "\t(by default: number of CPUs + 1)\n"
                 + "\t--saveProgress=[value] (optional) -- path to file for saving last used password\n"
                 + "\t(the file will be owerwritten)\n"
                 + "\t--saveProgressTime=[value] (optional) -- amount of seconds between savings\n"
