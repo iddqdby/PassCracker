@@ -49,10 +49,10 @@ public final class JSONArrayOfInt {
      */
     public JSONArrayOfInt( int[] value ) {
         
-        arrayValue = requireNonNull( value );
+        arrayValue = Arrays.copyOf( requireNonNull( value ), value.length );
         
         List<String> list = new ArrayList<>();
-        for( int p : value ) {
+        for( int p : arrayValue ) {
             list.add( String.valueOf( p ) );
         }
         
@@ -69,11 +69,11 @@ public final class JSONArrayOfInt {
      */
     public JSONArrayOfInt( String value ) {
         
-        stringValue = requireNonNull( value );
-        
-        if( !PATTERN.matcher( value ).matches() ) {
-            throw new IllegalArgumentException( "Fail to parce array of integers." );
+        if( !PATTERN.matcher( requireNonNull( value ) ).matches() ) {
+            throw new IllegalArgumentException( "Fail to parse array of integers." );
         }
+        
+        stringValue = value;
         
         String[] array = value.replaceAll( "[ \\[\\]]+", "" ).split( "," );
         int[] intArray = new int[ array.length ];
