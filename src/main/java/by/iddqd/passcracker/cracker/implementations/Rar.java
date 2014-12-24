@@ -23,6 +23,7 @@ import by.iddqd.passcracker.cracker.MIMEtype;
 import by.iddqd.passcracker.shell.ExecutionResult;
 import by.iddqd.passcracker.shell.ShellExecutor;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
@@ -41,6 +42,8 @@ class Rar extends Cracker {
     
     private ShellExecutor executor;
     private String smallestFile;
+    private String[] cmdArray;
+    private int cmdArrayPlaceholder;
     
     @Override
     protected void doInit( Path path ) {
@@ -101,8 +104,13 @@ class Rar extends Cracker {
                            // (archive has encrypted filenames)
                     .getValue(); // get the filename
         } catch( NoSuchElementException ex ) {
-            smallestFile = "";
+            smallestFile = null;
         }
+        
+        cmdArray = smallestFile == null
+                ? new String[] { "unrar", "t", null, path.toString() }
+                : new String[] { "unrar", "t", null, path.toString(), smallestFile };
+        cmdArrayPlaceholder = 2;
     }
 
     @Override
@@ -136,8 +144,10 @@ class Rar extends Cracker {
          * any other exit code
          */
         
-        int exitValue = executor.execute( "unrar", "t", "-p" + password, path.toString(), smallestFile )
-                .getExitValue();
+        String[] cmd = Arrays.copyOf( cmdArray, cmdArray.length );
+        cmd[ cmdArrayPlaceholder ] = "-p".concat( password );
+        
+        int exitValue = executor.execute( cmd ).getExitValue();
         
         switch( exitValue ) {
             case 3:
