@@ -18,9 +18,15 @@
 
 package by.iddqd.passcracker.utils;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 import static java.util.Objects.requireNonNull;
@@ -32,34 +38,32 @@ import static java.util.Objects.requireNonNull;
  * 
  * @author Sergey Protasevich
  */
-public final class JSONArrayOfInt {
+public final class JSONArrayOfInt implements Serializable {
     
     /**
      * Regex pattern of valid JSON array of integers.
      */
-    public static final Pattern PATTERN = Pattern.compile( "\\[ *((\\-?\\d+, *)*(\\-?\\d+){1})? *\\]" );
+    public static final Pattern PATTERN = Pattern.compile( "\\[\\s*((\\-?\\d+,\\s*)*(\\-?\\d+){1})?\\s*\\]" );
     
     private final int[] arrayValue;
     private final String stringValue;
 
+    /**
+     * Create empty JSON array.
+     */
+    public JSONArrayOfInt() {
+        arrayValue = new int[0];
+        stringValue = "[]";
+    }
+    
     /**
      * Create JSON array.
      * 
      * @param value array of integers
      */
     public JSONArrayOfInt( int[] value ) {
-        
-        arrayValue = Arrays.copyOf( requireNonNull( value ), value.length );
-        
-        List<String> list = new ArrayList<>();
-        for( int p : arrayValue ) {
-            list.add( String.valueOf( p ) );
-        }
-        
-        stringValue = new StringBuilder( "[" )
-                .append( String.join( ",", list ) )
-                .append( "]" )
-                .toString();
+        arrayValue = Arrays.copyOf( value, value.length );
+        stringValue = intArrayToString( value );
     }
 
     /**
@@ -68,21 +72,38 @@ public final class JSONArrayOfInt {
      * @param value string representation of array
      */
     public JSONArrayOfInt( String value ) {
+        arrayValue = stringToIntArray( value );
+        stringValue = intArrayToString( arrayValue ); // save normalized string
+    }
+    
+    private String intArrayToString( int[] array ) throws NullPointerException {
         
-        if( !PATTERN.matcher( requireNonNull( value ) ).matches() ) {
+        List<String> list = new ArrayList<>();
+        for( int p : requireNonNull( array ) ) {
+            list.add( String.valueOf( p ) );
+        }
+        
+        return new StringBuilder( "[" )
+                .append( String.join( ",", list ) )
+                .append( "]" )
+                .toString()
+                .intern();
+    }
+    
+    private int[] stringToIntArray( String string ) throws NullPointerException, IllegalArgumentException {
+        
+        if( !PATTERN.matcher( requireNonNull( string ) ).matches() ) {
             throw new IllegalArgumentException( "Fail to parse array of integers." );
         }
         
-        stringValue = value;
+        String[] stringArray = string.replaceAll( "[\\s\\[\\]]+", "" ).split( "," );
+        int[] intArray = new int[ stringArray.length ];
         
-        String[] array = value.replaceAll( "[ \\[\\]]+", "" ).split( "," );
-        int[] intArray = new int[ array.length ];
-        
-        for( int i = 0; i < array.length; i++ ) {
-            intArray[ i ] = Integer.parseInt( array[ i ] );
+        for( int i = 0; i < stringArray.length; i++ ) {
+            intArray[ i ] = Integer.parseInt( stringArray[ i ] );
         }
         
-        arrayValue = intArray;
+        return intArray;
     }
     
     /**
@@ -102,5 +123,48 @@ public final class JSONArrayOfInt {
     @Override
     public String toString() {
         return stringValue;
+    }
+
+    @Override
+    public boolean equals( Object obj ) {
+        if( !( obj instanceof JSONArrayOfInt ) ) {
+            return false;
+        }
+        return Arrays.equals( arrayValue, ((JSONArrayOfInt)obj).arrayValue );
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 67 * hash + Arrays.hashCode( this.arrayValue );
+        hash = 67 * hash + Objects.hashCode( this.stringValue );
+        return hash;
+    }
+
+    /*--- Serialization --- */
+    
+    private void writeObject( ObjectOutputStream out ) throws IOException {
+        out.writeUTF( intArrayToString( arrayValue ) );
+    }
+
+    private void readObject( ObjectInputStream in ) throws IOException, ClassNotFoundException {
+        try {
+            int[] intArray = stringToIntArray( in.readUTF() );
+            String string = intArrayToString( intArray ); // normalize the initial string
+            
+            Field arrayValueField = getClass().getDeclaredField( "arrayValue" );
+            Field stringValueField = getClass().getDeclaredField( "stringValue" );
+            
+            arrayValueField.setAccessible( true );
+            stringValueField.setAccessible( true );
+            
+            arrayValueField.set( this, intArray );
+            stringValueField.set( this, string );
+            
+        } catch( IllegalArgumentException ex ) {
+            throw new ClassNotFoundException( "String is not a valid JSON array of integers.", ex );
+        } catch( NoSuchFieldException | SecurityException | IllegalAccessException ex ) {
+            throw new RuntimeException( ex );
+        }
     }
 }
