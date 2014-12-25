@@ -97,7 +97,7 @@ class Rar extends Cracker {
                             ( map1, map2 ) -> map1.putAll( map2 ) )
                     .entrySet()
                     .stream()
-                    .filter( entry -> entry.getKey() > 16384 )  // filter out directoy enty (if any)
+                    .filter( entry -> entry.getKey() > 8192 )   // filter out directoy enty (if any)
                                                                 // and other files that are too small
                     .min( ( entry1, entry2 ) -> entry1.getKey().compareTo( entry2.getKey() ) )
                     .get() // throws NoSuchElementException if there are no files in the stdOut
