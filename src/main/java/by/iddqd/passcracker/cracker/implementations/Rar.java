@@ -20,8 +20,8 @@ package by.iddqd.passcracker.cracker.implementations;
 
 import by.iddqd.passcracker.cracker.Cracker;
 import by.iddqd.passcracker.cracker.MIMEtype;
-import by.iddqd.passcracker.shell.ExecutionResult;
-import by.iddqd.passcracker.shell.ShellExecutor;
+import by.iddqd.utils.shell.ExecutionResult;
+import by.iddqd.utils.shell.ShellExecutor;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.NoSuchElementException;

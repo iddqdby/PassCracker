@@ -18,7 +18,7 @@
 
 package by.iddqd.passcracker.cli;
 
-import by.iddqd.passcracker.utils.JSONArrayOfInt;
+import by.iddqd.utils.JSONArrayOfInt;
 import by.iddqd.passcracker.sequence.PassSequence;
 import by.iddqd.passcracker.sequence.PermutationsWithoutRepetitionsPassSequence;
 import by.iddqd.passcracker.sequence.SimplePassSequence;

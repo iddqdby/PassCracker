@@ -18,7 +18,7 @@
 
 package by.iddqd.passcracker.cli;
 
-import by.iddqd.passcracker.utils.JSONArrayOfInt;
+import by.iddqd.utils.JSONArrayOfInt;
 import by.iddqd.passcracker.sequence.workers.PassSupplier;
 import java.io.IOError;
 import java.io.IOException;

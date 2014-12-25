@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package by.iddqd.passcracker.shell;
+package by.iddqd.utils.shell;
 
 import java.util.List;
 
