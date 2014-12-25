@@ -20,6 +20,7 @@ package by.iddqd.passcracker.sequence.workers;
 
 import by.iddqd.passcracker.sequence.PassSequence;
 import by.iddqd.passcracker.sequence.alphabet.Alphabet;
+import java.util.Iterator;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -79,18 +80,18 @@ public class PassSupplier {
         thread = new Thread() {
             @Override
             public void run() {
-                for( int[] passValue : PassSupplier.this.passSequence ) {
-                    
-                    if( isInterrupted() ) {
-                        return;
+                try {
+                    int objects = 0;
+                    for( Iterator<int[]> it = passSequence.iterator();
+                            it.hasNext() && !isInterrupted();
+                            queue.put( it.next() ) ) {
+                        
+                        if( ++objects > 65536 ) {
+                            System.gc();
+                            objects = 0;
+                        }
                     }
-                    
-                    try {
-                        queue.put( passValue );
-                    } catch( InterruptedException ex ) {
-                        return;
-                    }
-                }
+                } catch( InterruptedException ex ) {}
             }
         };
         thread.setDaemon( true );
