@@ -16,38 +16,40 @@ Usage:
       --maxLength=[value] -- maximum amount of tokens in the generated passwords
       --sequenceType=[value] -- type of sequence
       --alphabetType=[value] -- type of alphabet
-      --threads=[value] (optional) -- number of working threads (by default: number of CPUs + 1)
+      --threads=[value] (optional) -- number of working threads
+          (by default: number of CPUs + 1)
       --saveProgress=[value] (optional) -- path to file for saving last used password
           (i.e. the progress) (the file will be owerwritten)
       --saveProgressTime=[value] (optional) -- amount of seconds between savings
-      --log=[value] (optional) -- path to log file (only progress will be saved, runtime errors
-          and result will not)
+      --log=[value] (optional) -- path to log file (only progress will be saved,
+          runtime errors and result will not)
   
     Supported types of sequences and its options:
     
       type "simple" (bijective base-k numeration):
       
         --startFrom=[value] -- value to start sequence from (it may be the file from
-            the "saveProgress" option) (JSON array of alphabet indices, or path to text file
-            with JSON array of alphabet indices)
+            the "saveProgress" option) (JSON array of alphabet indices,
+            or path to text file with JSON array of alphabet indices)
         
       type "permutations" (permutations without repetition):
 
         --startFrom=[value] -- value to start sequence from (it may be the file from
-            the "saveProgress" option) (JSON array of alphabet indices, or path to text file
-            with JSON array of alphabet indices)
+            the "saveProgress" option) (JSON array of alphabet indices,
+            or path to text file with JSON array of alphabet indices)
     
     Supported types of alphabets and its options:
     
       type "characters":
       
-        --characterSets=[value] -- sets of characters to use, as a sum of some of the next values:
-            1 (000001) -- digits,
-            2 (000010) -- latin characters,
-            4 (000100) -- cyrillic characters,
-            8 (001000) -- special characters,
-            16 (010000) -- space,
-            32 (100000) -- tab;
+        --characterSets=[value] -- sets of characters to use,
+            as a sum of some of the next values:
+                1 (000001) -- digits,
+                2 (000010) -- latin characters,
+                4 (000100) -- cyrillic characters,
+                8 (001000) -- special characters,
+                16 (010000) -- space,
+                32 (100000) -- tab;
           for example, 19 (1 + 2 + 16) means "use digits and latin characters and space"
         --additionalCharacters=[value] -- additional characters to use
         
@@ -56,13 +58,16 @@ Usage:
         --tokens=[value] -- path to text file with tokens (each token on new line);
           IMPORTANT:
             file must be saved in UTF-8 charset;
-            beware the use of large file because the file will be completely loaded into memory
+            beware the use of large file because the file will be completely loaded
+                into memory
         --t[n]=[value] where n = 1,2,3,... -- additional tokents to include in the alphabet;
-          for example: --t1=foo --t2=bar --t3=baz
+            for example: --t1=foo --t2=bar --t3=baz
     
     Current progress will be printed to STDERR.
     
-    Result (i.e. the password) will be printed to STDUOT, so you may use something like this:
+    Result (i.e. the password) will be printed to STDUOT, so you may use
+    something like this:
+
       java -jar PassCrackerCLI.jar <options> <path_to_file> > password.txt
 
 Supported file formats:
