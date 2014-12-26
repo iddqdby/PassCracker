@@ -162,9 +162,8 @@ class Rar extends Cracker<Rar> {
     }
 
     @Override
-    protected Rar cloneThis( Rar clone ) {
+    protected void cloneThis( Rar clone ) {
         clone.executor = executor;
         clone.cmdArray = Arrays.copyOf( cmdArray, cmdArray.length );
-        return clone;
     }
 }

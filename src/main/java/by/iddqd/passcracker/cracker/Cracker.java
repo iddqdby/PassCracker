@@ -137,7 +137,7 @@ public abstract class Cracker<I extends Cracker> implements Cloneable {
         return c;
     }
     
-    protected abstract I cloneThis( I clone );
+    protected abstract void cloneThis( I clone );
     
     /*--- Factory method ---*/
     
