@@ -1,0 +1,32 @@
+7-Zip-JBinding Release Notes
+============================
+
+Main features of 4.65-1.06rc-extr-only (Release candidate, extraction only, cross-platform, based on zip/p7zip 4.65)
+
+	* Extraction of
+		- 7z, Zip, Tar, Rar, Lzma, Iso, GZip, Cpio, BZIP2,
+		  Z, Arj, Lzh, Cab, Chm, Nsis, DEB, RPM, UDF, WIM
+	
+	* Support for password protected and volumed archives
+	
+	* Compression method auto detection
+	
+	* Simple extraction interface
+	
+	* Cross-platform. Binaries available for
+		- Windows 32/64
+		- Linux	32/64
+		- Mac OS X 32/64
+
+	* Multi-platform distributions (with platform auto-detection):
+	  	- AllWindows - includes Win32 and Win64
+	  	- AllLinux - includes Linux32 and Linux64
+	  	- AllMax - includes Mac OS X 32 and Mac OS X 64
+	  	- AllPlatforms - includes AllWindows, AllLinux and AllMac
+
+	* Over 3600 JUnit tests extraction of archive formats:
+		- 7z, Zip, Tar, Rar, Lzma, Iso, GZip, Cpio, BZIP2,
+		  Z, Arj, Lzh, Cab, Chm, Nsis, DEB, RPM, UDF
+	
+	* 7-Zip-JBinding requires Java 1.5 or higher
+	

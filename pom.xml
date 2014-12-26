@@ -16,10 +16,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        
     </properties>
     
     <build>
         <plugins>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -33,6 +35,36 @@
                     </archive>
                 </configuration>
             </plugin>
+            
+            <plugin>
+                <groupId>org.dstovall</groupId>
+                <artifactId>onejar-maven-plugin</artifactId>
+                <version>1.4.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>one-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
         </plugins>
     </build>
+    
+    <dependencies>
+        
+        <dependency>
+            <groupId>7-Zip-JBinding</groupId>
+            <artifactId>sevenzipjbinding</artifactId>
+            <version>4.65-1.06-extr-only</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>7-Zip-JBinding</groupId>
+            <artifactId>sevenzipjbinding-AllPlatforms</artifactId>
+            <version>4.65-1.06-extr-only</version>
+        </dependency>
+        
+    </dependencies>
 </project>
