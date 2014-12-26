@@ -60,8 +60,8 @@ Usage:
             file must be saved in UTF-8 charset;
             beware the use of large file because the file will be completely loaded
                 into memory
-        --t[n]=[value] where n = 1,2,3,... -- additional tokents to include in the alphabet;
-            for example: --t1=foo --t2=bar --t3=baz
+        --t[n]=[value] where n = 1,2,3,... -- additional tokents to include
+            in the alphabet; for example: --t1=foo --t2=bar --t3=baz
     
     Current progress will be printed to STDERR.
     
