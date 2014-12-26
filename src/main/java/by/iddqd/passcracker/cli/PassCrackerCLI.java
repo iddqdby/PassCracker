@@ -36,6 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
 
@@ -114,9 +115,9 @@ public class PassCrackerCLI implements Runnable {
             console.start();
             
             PassSupplier passSupplier = PassSupplier.create( passSequence );
-            Cracker cracker = Cracker.loadCracker( path );
+            List<Cracker> crackers = Cracker.loadCrackers( path, threads );
             
-            console.println( "Type of file: " + cracker.getMimeType() + ", threads: " + threads );
+            console.println( "Type of file: " + crackers.get( 0 ).getMimeType() + ", threads: " + threads );
             watcher.start( passSupplier, console );
             
             if( saveProgress != null && saveProgressTime > 0 ) {
@@ -127,28 +128,20 @@ public class PassCrackerCLI implements Runnable {
                 logger.setUpAndStart( console, rawOptions, watcher, passSupplier, log );
             }
             
-            List<Future<Boolean>> futures = new ArrayList<>( threads );
-            for( int i = 0; i < threads; i++ ) {
-                futures.add( EXECUTOR
-                        .submit( new PassConsumer( passSupplier, cracker::testPassword, this::savePassword ) ) );
-            }
+            List<Future<Boolean>> futures = crackers.stream()
+                    .map( cracker -> new PassConsumer( passSupplier, cracker::testPassword, this::savePassword ) )
+                    .map( passConsumer -> EXECUTOR.submit( passConsumer ) )
+                    .collect( Collectors.toList() );
             
             Thread.sleep( 1000 );
             
-            List<ExecutionException> executionExceptions = new ArrayList<>();
-            
+            List<ExecutionException> executionExceptions = new ArrayList<>( threads );
             boolean found = false;
-            for( Future<Boolean> future : futures ) {
-                boolean result;
+            while( !found && !futures.isEmpty() ) {
                 try {
-                    result = future.get();
+                    found = found || futures.remove( 0 ).get();
                 } catch( ExecutionException ex ) {
                     executionExceptions.add( ex );
-                    result = false;
-                }
-                if( result ) {
-                    found = true;
-                    break;
                 }
             }
             

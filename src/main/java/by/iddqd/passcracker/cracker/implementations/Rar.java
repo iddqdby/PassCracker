@@ -36,14 +36,12 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * @author Sergey Protasevich
  */
 @MIMEtype( "application/x-rar" )
-class Rar extends Cracker {
+class Rar extends Cracker<Rar> {
     
     // TODO Add support of WinRAR on Win
     
     private ShellExecutor executor;
-    private String smallestFile;
     private String[] cmdArray;
-    private int cmdArrayPlaceholder;
     
     @Override
     protected void doInit( Path path ) {
@@ -83,6 +81,7 @@ class Rar extends Cracker {
                 + "[\\dA-Z]{8} +" // Checksum
                 + "(?<NAME>.+)" ); // Name
         
+        String smallestFile;
         try {
             smallestFile = result
                     .getStdOut()
@@ -110,7 +109,7 @@ class Rar extends Cracker {
         cmdArray = smallestFile == null
                 ? new String[] { "unrar", "t", null, path.toString() }
                 : new String[] { "unrar", "t", null, path.toString(), smallestFile };
-        cmdArrayPlaceholder = 2;
+                // index 2 is for password
     }
 
     @Override
@@ -144,10 +143,8 @@ class Rar extends Cracker {
          * any other exit code
          */
         
-        String[] cmd = Arrays.copyOf( cmdArray, cmdArray.length );
-        cmd[ cmdArrayPlaceholder ] = "-p".concat( password );
-        
-        int exitValue = executor.execute( cmd ).getExitValue();
+        cmdArray[ 2 ] = "-p".concat( password ); // index 2: insert password
+        int exitValue = executor.execute( cmdArray ).getExitValue();
         
         switch( exitValue ) {
             case 3:
@@ -162,5 +159,12 @@ class Rar extends Cracker {
                         + " exit status = " + exitValue
                         + ", tested password = " + password );
         }
+    }
+
+    @Override
+    protected Rar cloneThis( Rar clone ) {
+        clone.executor = executor;
+        clone.cmdArray = Arrays.copyOf( cmdArray, cmdArray.length );
+        return clone;
     }
 }

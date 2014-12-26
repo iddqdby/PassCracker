@@ -23,14 +23,19 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
  * Abstract cracker.
  * 
  * @author Sergey Protasevich
+ * @param <I> type of subclass
  */
-public abstract class Cracker {
+public abstract class Cracker<I extends Cracker> implements Cloneable {
     
     private String mimeType;
     private Path path;
@@ -121,13 +126,27 @@ public abstract class Cracker {
      */
     protected abstract boolean doTestPassword( Path path, String password ) throws InterruptedException;
     
+    /*--- Cloneable interface ---*/
+
+    @Override
+    public final Cracker clone() throws CloneNotSupportedException {
+        Cracker c = (Cracker)super.clone();
+        c.mimeType = mimeType;
+        c.path = path;
+        cloneThis( (I)c );
+        return c;
+    }
+    
+    protected abstract I cloneThis( I clone );
+    
     /*--- Factory method ---*/
     
     /**
      * Get cracker for given file.
      * 
      * @param path path to file
-     * @return the Cracker for given file
+     * @param number number of Cracker instances to create
+     * @return the collection of Cracker instances for given file
      * @throws IllegalArgumentException if the file is not a regular file or is not readable
      * @throws ClassNotFoundException if there is no suitable Cracker
      * for the MIME type of the given file
@@ -135,8 +154,12 @@ public abstract class Cracker {
      * under current environment
      * @throws IOException if an I/O error occurs
      */
-    public static Cracker loadCracker( Path path )
+    public static List<Cracker> loadCrackers( Path path, int number )
             throws IllegalArgumentException, ClassNotFoundException, IllegalStateException, IOException {
+        
+        if( number < 1 ) {
+            throw new IllegalArgumentException( "Number of crackers is not legal: "+  number );
+        }
         
         if( !Files.isRegularFile( path ) || !Files.isReadable( path ) ) {
             throw new IllegalArgumentException( path.toString()
@@ -146,6 +169,8 @@ public abstract class Cracker {
         String mimeType = Files.probeContentType( path );
         
         try {
+            List<Cracker> crackers = new ArrayList<>( number );
+            
             Class<? extends Cracker> crackerClass = CrackerClassLoader.get().loadClass( mimeType );
             
             Constructor<? extends Cracker> constructor = crackerClass.getDeclaredConstructor();
@@ -166,11 +191,18 @@ public abstract class Cracker {
 
                 cracker.prepare();
                 
+                for( crackers.add( cracker ); number > 1; number-- ) {
+                    crackers.add( cracker.clone() );
+                }
+                
             } catch( InterruptedException ex ) {
                 throw new RuntimeException( "Unexpected interruption", ex );
+            } catch( CloneNotSupportedException ex ) {
+                throw new RuntimeException(
+                        "Cracker implementation is illegal: " + cracker.getClass(), ex );
             }
             
-            return cracker;
+            return crackers;
             
         } catch( SecurityException
                 | InvocationTargetException
