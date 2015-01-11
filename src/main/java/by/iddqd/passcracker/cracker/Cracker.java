@@ -25,8 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -40,6 +38,10 @@ public abstract class Cracker<I extends Cracker> implements Cloneable {
     private String mimeType;
     private Path path;
 
+    protected final Path getPath() {
+        return path;
+    }
+    
     private void setMimeType( String mimeType ) {
         this.mimeType = mimeType;
     }
